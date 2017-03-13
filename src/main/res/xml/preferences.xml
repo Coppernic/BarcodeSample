@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:defaultValue="@string/pref_barcode_reader_default"
+        android:dialogTitle="@string/pref_title_barcode_reader_type"
+        android:entries="@array/pref_barcode_reader_entries"
+        android:entryValues="@array/pref_barcode_reader_values"
+        android:key="key_barcode_reader"
+        android:title="@string/pref_title_barcode_reader"/>
+</PreferenceScreen>
