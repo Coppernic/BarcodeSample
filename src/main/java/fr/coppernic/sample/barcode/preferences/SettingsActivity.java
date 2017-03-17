@@ -1,4 +1,4 @@
-package fr.coppernic.sample.barcode;
+package fr.coppernic.sample.barcode.preferences;
 
 
 import android.annotation.TargetApi;
@@ -13,6 +13,10 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
+import fr.coppernic.sample.barcode.AppCompatActivity;
+import fr.coppernic.sample.barcode.R;
+import fr.coppernic.sdk.barcode.BarcodeType;
+
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
  * handset devices, settings are presented as a single list. On tablets,
@@ -25,6 +29,17 @@ import android.view.MenuItem;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends AppCompatActivity {
+
+	public final static String KEY_TYPE = "key_barcode_reader";
+	public final static String KEY_BAUDRATE = "key_barcode_bdt";
+	public final static String KEY_PORT = "key_barcode_port";
+
+	public final static String TYPE_NONE = "-1";
+	public final static String TYPE_OPTICON_MDI3100 = "0";
+	public final static String TYPE_OPTICON_MDL1000 = "1";
+	public final static String TYPE_HONEYWELL_N6603_DECODED = "2";
+	public final static String TYPE_HONEYWELL_N6603_UNDECODED = "3";
+
 	/**
 	 * A preference value change listener that updates the preference's summary
 	 * to reflect its new value.
@@ -79,6 +94,27 @@ public class SettingsActivity extends AppCompatActivity {
 			                                                                    ""));
 	}
 
+	public static BarcodeType barcodeSettingToBarcodeType(String setting) {
+		BarcodeType type;
+		switch (setting) {
+			case TYPE_OPTICON_MDI3100:
+				type = BarcodeType.OPTICON_MDI3100;
+				break;
+			case TYPE_OPTICON_MDL1000:
+				type = BarcodeType.OPTICON_MDL1000;
+				break;
+			case TYPE_HONEYWELL_N6603_DECODED:
+				type = BarcodeType.HONEYWELL_N6603_DECODED;
+				break;
+			case TYPE_HONEYWELL_N6603_UNDECODED:
+				type = BarcodeType.HONEYWELL_N6603_UNDECODED;
+				break;
+			default:
+				type = BarcodeType.NONE;
+		}
+		return type;
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -124,11 +160,13 @@ public class SettingsActivity extends AppCompatActivity {
 			addPreferencesFromResource(R.xml.preferences);
 			setHasOptionsMenu(true);
 
-			// Bind the summaries of EditText/List/Dialog/Ringtone preferences
+			// Bind the summaries of EditText/List/Dialog preferences
 			// to their values. When their values change, their summaries are
 			// updated to reflect the new value, per the Android Design
 			// guidelines.
-			bindPreferenceSummaryToValue(findPreference("key_barcode_reader"));
+			bindPreferenceSummaryToValue(findPreference(KEY_TYPE));
+			bindPreferenceSummaryToValue(findPreference(KEY_PORT));
+			bindPreferenceSummaryToValue(findPreference(KEY_BAUDRATE));
 		}
 
 		@Override
