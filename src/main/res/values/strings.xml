@@ -48,5 +48,13 @@
     <string name="set_param">Set param</string>
     <string name="clear">Clear</string>
     <string name="get_sym">Get Sym</string>
-
+    <string name="set_sym">Set Sym</string>
+    <string name="set_sym_title">Symbology</string>
+    <string name="set_sym_positive">Configure</string>
+    <string name="enable">Enable</string>
+    <string name="min">Min</string>
+    <string name="max">Max</string>
+    <string name="prefix">Prefix</string>
+    <string name="suffix">Suffix</string>
+    <string name="reload">Reload</string>
 </resources>

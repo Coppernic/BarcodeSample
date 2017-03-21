@@ -48,7 +48,7 @@
         android:id="@+id/txtLog"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="7dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:ems="10"
@@ -62,16 +62,15 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/btnGetSym"/>
+        app:layout_constraintTop_toBottomOf="@+id/btnSetSym"/>
 
     <Button
         android:id="@+id/btnGetParam"
         style="@style/Widget.AppCompat.Button.Small"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="@string/get_param"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnOpen"/>
@@ -83,7 +82,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="0dp"
         android:text="@string/set_param"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnGetParam"/>
@@ -128,7 +127,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintTop_toTopOf="@+id/btnSetParam"
-        app:layout_constraintVertical_bias="0.333"/>
+        app:layout_constraintVertical_bias="0.4"/>
 
     <Spinner
         android:id="@+id/spinnerGetParam"
@@ -148,7 +147,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
         android:text="@string/get_sym"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSetParam"
@@ -156,13 +154,65 @@
 
     <Spinner
         android:id="@+id/spinnerGetSym"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintLeft_toRightOf="@+id/btnGetSym"
+        android:layout_width="170dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
-        app:layout_constraintTop_toTopOf="@+id/btnGetSym"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/btnGetSym"
-        android:layout_marginBottom="8dp"/>
+        app:layout_constraintLeft_toRightOf="@+id/btnGetSym"
+        app:layout_constraintTop_toTopOf="@+id/btnGetSym"
+        app:layout_constraintVertical_bias="0.571"/>
+
+    <Button
+        android:id="@+id/btnSetSym"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:text="@string/set_sym"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnGetSym"
+        android:layout_marginStart="8dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerSetSym"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnSetSym"
+        app:layout_constraintLeft_toRightOf="@+id/btnSetSym"
+        app:layout_constraintTop_toTopOf="@+id/btnSetSym"/>
+
+    <CheckBox
+        android:id="@+id/checkGetParam"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/reload"
+        app:layout_constraintBottom_toBottomOf="@+id/spinnerGetParam"
+        app:layout_constraintLeft_toRightOf="@+id/spinnerGetParam"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/spinnerGetParam"/>
+
+    <CheckBox
+        android:id="@+id/checkGetSym"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/reload"
+        app:layout_constraintLeft_toRightOf="@+id/spinnerGetSym"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintTop_toTopOf="@+id/spinnerGetSym"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/spinnerGetSym"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"/>
 
 </android.support.constraint.ConstraintLayout>

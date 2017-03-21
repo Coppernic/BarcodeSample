@@ -1,10 +1,12 @@
 package fr.coppernic.sample.barcode;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,15 +14,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import fr.coppernic.cpcframework.cpcpowermgmt.PowerMgmt;
 import fr.coppernic.cpcframework.cpcpowermgmt.PowerMgmtFactory;
@@ -32,6 +43,7 @@ import fr.coppernic.sdk.barcode.core.Parameter;
 import fr.coppernic.sdk.barcode.core.Parameter.ParamType;
 import fr.coppernic.sdk.barcode.core.Symbol;
 import fr.coppernic.sdk.barcode.core.SymbolSetting;
+import fr.coppernic.sdk.utils.core.CpcBytes;
 import fr.coppernic.sdk.utils.core.CpcDefinitions;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import fr.coppernic.sdk.utils.debug.Log;
@@ -51,14 +63,25 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private Button btnGetParam;
 	private Button btnSetParam;
 	private Button btnGetSym;
+	private final Map<Symbol, SymbolSetting> settingMap = new HashMap<>();
 	private EditText edtSetParam;
 	private Spinner spinnerSetParam;
 	private Spinner spinnerGetParam;
 	private Spinner spinnerGetSym;
+	private Button btnSetSym;
+	private Spinner spinnerSetSym;
+	private CheckBox checkGetParam;
 	private TextView txtLog;
 	private SharedPreferences sharedPreferences;
 	private BarcodeReader reader;
 	private PowerMgmt power;
+	private CheckBox checkGetSym;
+	private Dialog dialog;
+	private Switch dialogSwitch;
+	private EditText dialogPrefix;
+	private EditText dialogSuffix;
+	private EditText dialogMin;
+	private EditText dialogMax;
 
 	public BarcodeFragment() {
 	}
@@ -117,6 +140,13 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 				getSym();
 			}
 		});
+		btnSetSym = (Button) view.findViewById(R.id.btnSetSym);
+		btnSetSym.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				setSym();
+			}
+		});
 		Button btnClear = (Button) view.findViewById(R.id.btnClear);
 		btnClear.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -128,7 +158,10 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		spinnerSetParam = (Spinner) view.findViewById(R.id.spinnerSetParam);
 		spinnerGetParam = (Spinner) view.findViewById(R.id.spinnerGetParam);
 		spinnerGetSym = (Spinner) view.findViewById(R.id.spinnerGetSym);
+		spinnerSetSym = (Spinner) view.findViewById(R.id.spinnerSetSym);
 		txtLog = (TextView) view.findViewById(R.id.txtLog);
+		checkGetParam = (CheckBox) view.findViewById(R.id.checkGetParam);
+		checkGetSym = (CheckBox) view.findViewById(R.id.checkGetSym);
 
 		//init
 		power = null;
@@ -137,12 +170,14 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 
 	@Override
 	public void onAttach(Context context) {
+		Log.d(TAG, "onAttach");
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		super.onAttach(context);
 	}
 
 	@Override
 	public void onStart() {
+		Log.d(TAG, "onStart");
 		//Close barcode service (on C-five)
 		Intent intent = new Intent(CpcDefinitions.INTENT_ACTION_STOP_BARCODE_SERVICE);
 		intent.setPackage(CpcOs.getSystemServicePackage(getContext()));
@@ -155,8 +190,18 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 
 	@Override
 	public void onStop() {
+		Log.d(TAG, "onStop");
 		close();
 		super.onStop();
+	}
+
+	@Override
+	public void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		if (dialog != null) {
+			dialog.dismiss();
+		}
+		super.onDestroy();
 	}
 
 	private void setUpReader() {
@@ -188,8 +233,20 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		btnScan.setEnabled(enable);
 		btnGetParam.setEnabled(enable);
 		btnSetParam.setEnabled(enable);
+		btnGetSym.setEnabled(enable);
+		btnSetSym.setEnabled(enable);
 		edtSetParam.setEnabled(enable);
 		spinnerSetParam.setEnabled(enable);
+		spinnerGetParam.setEnabled(enable);
+		spinnerSetSym.setEnabled(enable);
+		spinnerGetSym.setEnabled(enable);
+	}
+
+	private void enableDialogView(boolean enable) {
+		dialogPrefix.setEnabled(enable);
+		dialogSuffix.setEnabled(enable);
+		dialogMin.setEnabled(enable);
+		dialogMax.setEnabled(enable);
 	}
 
 	private void open() {
@@ -197,6 +254,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	}
 
 	private void close() {
+		Log.d(TAG, "close");
 		if (reader != null && reader.isOpened()) {
 			reader.close();
 		}
@@ -218,7 +276,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private void getParam() {
 		ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
 		if (type != null) {
-			RESULT res = reader.getParameterValue(type, false);
+			RESULT res = reader.getParameterValue(type, checkGetParam.isChecked());
 			showResError(res);
 		}
 	}
@@ -246,8 +304,22 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		if (symName != null) {
 			Symbol s = getSymbolByName(symName);
 			if (s != null) {
-				RESULT res = reader.getSymbolSetting(s, false);
+				RESULT res = reader.getSymbolSetting(s, checkGetSym.isChecked());
 				showResError(res);
+			} else {
+				Toast.makeText(getContext(), "No symbol found", Toast.LENGTH_SHORT).show();
+			}
+		} else {
+			Toast.makeText(getContext(), "No symbol selected", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void setSym() {
+		String symName = (String) spinnerGetSym.getSelectedItem();
+		if (symName != null) {
+			Symbol s = getSymbolByName(symName);
+			if (s != null) {
+				showSetSymDialog(s);
 			} else {
 				Toast.makeText(getContext(), "No symbol found", Toast.LENGTH_SHORT).show();
 			}
@@ -297,6 +369,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			}
 		});
 		spinnerGetSym.setAdapter(symbolAdapter);
+		spinnerSetSym.setAdapter(symbolAdapter);
 	}
 
 	private void log(CharSequence s) {
@@ -375,6 +448,61 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		return null;
 	}
 
+	private void showSetSymDialog(final Symbol s) {
+		MaterialDialog.Builder builder = new MaterialDialog.Builder(getContext());
+		builder.title(s.getName())
+			.customView(R.layout.dialog, true)
+			.negativeText(android.R.string.cancel)
+			.onPositive(new MaterialDialog.SingleButtonCallback() {
+				@Override
+				public void onClick(@NonNull MaterialDialog materialDialog,
+				                    @NonNull DialogAction dialogAction) {
+					configureSymbol(s);
+				}
+			})
+			.positiveText(android.R.string.ok);
+
+		MaterialDialog d = builder.build();
+		onDialogViewCreated(d.getCustomView(), s);
+		dialog = d;
+		dialog.show();
+	}
+
+	private void onDialogViewCreated(View v, Symbol s) {
+		dialogSwitch = (Switch) v.findViewById(R.id.switchSymEnable);
+		dialogPrefix = (EditText) v.findViewById(R.id.edtPrefix);
+		dialogSuffix = (EditText) v.findViewById(R.id.edtSuffix);
+		dialogMin = (EditText) v.findViewById(R.id.edtMin);
+		dialogMax = (EditText) v.findViewById(R.id.edtMax);
+		dialogSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				enableDialogView(isChecked);
+			}
+		});
+		enableDialogView(dialogSwitch.isChecked());
+
+		SymbolSetting setting = settingMap.get(s);
+		if (setting != null) {
+			dialogSwitch.setChecked(setting.isEnabled());
+			dialogPrefix.setText(CpcBytes.byteArrayToUtf8String(setting.getPrefix()));
+			dialogSuffix.setText(CpcBytes.byteArrayToUtf8String(setting.getSuffix()));
+			dialogMin.setText(String.format(Locale.US, "%d", setting.getMin()));
+			dialogMax.setText(String.format(Locale.US, "%d", setting.getMax()));
+		}
+	}
+
+	private void configureSymbol(Symbol s) {
+		SymbolSetting setting = new SymbolSetting(s);
+		setting.setEnabled(dialogSwitch.isChecked());
+		setting.setPrefix(dialogPrefix.getText().toString().getBytes());
+		setting.setSuffix(dialogSuffix.getText().toString().getBytes());
+		setting.setMin(Integer.parseInt(dialogMin.getText().toString()));
+		setting.setMax(Integer.parseInt(dialogMax.getText().toString()));
+		RESULT res = reader.setSymbolSetting(setting);
+		showResError(res);
+	}
+
 	// ********** Barcode Listener ********** //
 
 	@Override
@@ -408,6 +536,9 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	@Override
 	public void onSymbolSettingAvailable(RESULT res, SymbolSetting setting) {
 		log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
+		if (res == RESULT.OK) {
+			settingMap.put(setting.getSymbol(), setting);
+		}
 	}
 
 	@Override
