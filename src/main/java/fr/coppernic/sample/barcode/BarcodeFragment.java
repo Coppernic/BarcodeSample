@@ -39,10 +39,12 @@ import fr.coppernic.sample.barcode.preferences.SettingsActivity;
 import fr.coppernic.sdk.barcode.BarcodeFactory;
 import fr.coppernic.sdk.barcode.BarcodeReader;
 import fr.coppernic.sdk.barcode.BarcodeReader.ScanResult;
+import fr.coppernic.sdk.barcode.Symbol;
+import fr.coppernic.sdk.barcode.SymbolSetting;
+import fr.coppernic.sdk.barcode.SymbolSetting.SettingParam;
+import fr.coppernic.sdk.barcode.SymbolSetting.SymbolSettingDiff;
 import fr.coppernic.sdk.barcode.core.Parameter;
 import fr.coppernic.sdk.barcode.core.Parameter.ParamType;
-import fr.coppernic.sdk.barcode.core.Symbol;
-import fr.coppernic.sdk.barcode.core.SymbolSetting;
 import fr.coppernic.sdk.utils.core.CpcBytes;
 import fr.coppernic.sdk.utils.core.CpcDefinitions;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
@@ -82,6 +84,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private EditText dialogSuffix;
 	private EditText dialogMin;
 	private EditText dialogMax;
+	private SymSettingState mState = SymSettingState.NONE;
 
 	public BarcodeFragment() {
 	}
@@ -301,9 +304,12 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 
 	private void getSym() {
 		String symName = (String) spinnerGetSym.getSelectedItem();
+		getSym(symName, SymSettingState.GET);
+		/*
 		if (symName != null) {
 			Symbol s = getSymbolByName(symName);
 			if (s != null) {
+				mState = SymSettingState.GET;
 				RESULT res = reader.getSymbolSetting(s, checkGetSym.isChecked());
 				showResError(res);
 			} else {
@@ -312,14 +318,35 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		} else {
 			Toast.makeText(getContext(), "No symbol selected", Toast.LENGTH_SHORT).show();
 		}
+		*/
 	}
 
 	private void setSym() {
-		String symName = (String) spinnerGetSym.getSelectedItem();
+		String symName = (String) spinnerSetSym.getSelectedItem();
+		getSym(symName, SymSettingState.SET);
+		/*
 		if (symName != null) {
 			Symbol s = getSymbolByName(symName);
 			if (s != null) {
+				mState = SymSettingState.SET;
 				showSetSymDialog(s);
+			} else {
+				Toast.makeText(getContext(), "No symbol found", Toast.LENGTH_SHORT).show();
+			}
+		} else {
+			Toast.makeText(getContext(), "No symbol selected", Toast.LENGTH_SHORT).show();
+		}
+		*/
+	}
+
+	private void getSym(String symName, SymSettingState state) {
+		if (symName != null) {
+			Symbol s = getSymbolByName(symName);
+			if (s != null) {
+				mState = state;
+				RESULT res = reader
+					.getSymbolSetting(s, checkGetSym.isChecked() && state == SymSettingState.GET);
+				showResError(res);
 			} else {
 				Toast.makeText(getContext(), "No symbol found", Toast.LENGTH_SHORT).show();
 			}
@@ -448,9 +475,9 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		return null;
 	}
 
-	private void showSetSymDialog(final Symbol s) {
+	private void showSetSymDialog(final SymbolSetting s) {
 		MaterialDialog.Builder builder = new MaterialDialog.Builder(getContext());
-		builder.title(s.getName())
+		builder.title(s.getSymbol().getName())
 			.customView(R.layout.dialog, true)
 			.negativeText(android.R.string.cancel)
 			.onPositive(new MaterialDialog.SingleButtonCallback() {
@@ -468,7 +495,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		dialog.show();
 	}
 
-	private void onDialogViewCreated(View v, Symbol s) {
+	private void onDialogViewCreated(View v, SymbolSetting setting) {
 		dialogSwitch = (Switch) v.findViewById(R.id.switchSymEnable);
 		dialogPrefix = (EditText) v.findViewById(R.id.edtPrefix);
 		dialogSuffix = (EditText) v.findViewById(R.id.edtSuffix);
@@ -482,7 +509,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		});
 		enableDialogView(dialogSwitch.isChecked());
 
-		SymbolSetting setting = settingMap.get(s);
 		if (setting != null) {
 			dialogSwitch.setChecked(setting.isEnabled());
 			dialogPrefix.setText(CpcBytes.byteArrayToUtf8String(setting.getPrefix()));
@@ -492,14 +518,23 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		}
 	}
 
-	private void configureSymbol(Symbol s) {
-		SymbolSetting setting = new SymbolSetting(s);
-		setting.setEnabled(dialogSwitch.isChecked());
-		setting.setPrefix(dialogPrefix.getText().toString().getBytes());
-		setting.setSuffix(dialogSuffix.getText().toString().getBytes());
-		setting.setMin(Integer.parseInt(dialogMin.getText().toString()));
-		setting.setMax(Integer.parseInt(dialogMax.getText().toString()));
-		RESULT res = reader.setSymbolSetting(setting);
+	private void configureSymbol(SymbolSetting current) {
+		SymbolSettingDiff diff = new SymbolSettingDiff();
+		diff.set(SettingParam.ENABLE, dialogSwitch.isChecked());
+		diff.set(SettingParam.PREFIX, dialogPrefix.getText().toString().getBytes());
+		diff.set(SettingParam.SUFFIX, dialogSuffix.getText().toString().getBytes());
+
+		try {
+			diff.set(SettingParam.MIN, Integer.parseInt(dialogMin.getText().toString()));
+		} catch (NumberFormatException ignore) {
+
+		}
+		try {
+			diff.set(SettingParam.MAX, Integer.parseInt(dialogMax.getText().toString()));
+		} catch (NumberFormatException ignore) {
+
+		}
+		RESULT res = reader.setSymbolSetting(current.getSymbol(), diff);
 		showResError(res);
 	}
 
@@ -514,7 +549,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	@Override
 	public void onScan(RESULT res, ScanResult data) {
 		Log.d(TAG, "onScan " + res);
-		log("Scan : " + (data == null ? "null" : data.dataToString()));
+		log(data == null ? "null" : data.toString());
 	}
 
 	@Override
@@ -535,7 +570,11 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 
 	@Override
 	public void onSymbolSettingAvailable(RESULT res, SymbolSetting setting) {
-		log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
+		if (mState == SymSettingState.SET) {
+			showSetSymDialog(setting);
+		} else {
+			log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
+		}
 		if (res == RESULT.OK) {
 			settingMap.put(setting.getSymbol(), setting);
 		}
@@ -566,5 +605,11 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		Log.d(TAG, "onCreated " + instance);
 		reader = null;
 		enableView(false);
+	}
+
+	private enum SymSettingState {
+		NONE,
+		SET,
+		GET,
 	}
 }
