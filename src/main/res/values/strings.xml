@@ -44,6 +44,7 @@
     <string name="close">Close</string>
     <string name="get_firmware">Get Fw</string>
     <string name="scan">Scan</string>
+    <string name="abort_scan">Abort</string>
     <string name="get_param">Get param</string>
     <string name="set_param">Set param</string>
     <string name="clear">Clear</string>

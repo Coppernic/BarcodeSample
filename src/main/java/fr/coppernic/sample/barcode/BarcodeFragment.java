@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,10 +29,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import fr.coppernic.cpcframework.cpcpowermgmt.PowerMgmt;
 import fr.coppernic.cpcframework.cpcpowermgmt.PowerMgmtFactory;
@@ -65,7 +64,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private Button btnGetParam;
 	private Button btnSetParam;
 	private Button btnGetSym;
-	private final Map<Symbol, SymbolSetting> settingMap = new HashMap<>();
 	private EditText edtSetParam;
 	private Spinner spinnerSetParam;
 	private Spinner spinnerGetParam;
@@ -85,6 +83,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private EditText dialogMin;
 	private EditText dialogMax;
 	private SymSettingState mState = SymSettingState.NONE;
+	private final Handler handler = new Handler();
 
 	public BarcodeFragment() {
 	}
@@ -119,7 +118,11 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		btnScan.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				scan();
+				if (reader.isScanning()) {
+					abortScan();
+				} else {
+					scan();
+				}
 			}
 		});
 		btnGetParam = (Button) view.findViewById(R.id.btnGetParam);
@@ -305,38 +308,11 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private void getSym() {
 		String symName = (String) spinnerGetSym.getSelectedItem();
 		getSym(symName, SymSettingState.GET);
-		/*
-		if (symName != null) {
-			Symbol s = getSymbolByName(symName);
-			if (s != null) {
-				mState = SymSettingState.GET;
-				RESULT res = reader.getSymbolSetting(s, checkGetSym.isChecked());
-				showResError(res);
-			} else {
-				Toast.makeText(getContext(), "No symbol found", Toast.LENGTH_SHORT).show();
-			}
-		} else {
-			Toast.makeText(getContext(), "No symbol selected", Toast.LENGTH_SHORT).show();
-		}
-		*/
 	}
 
 	private void setSym() {
 		String symName = (String) spinnerSetSym.getSelectedItem();
 		getSym(symName, SymSettingState.SET);
-		/*
-		if (symName != null) {
-			Symbol s = getSymbolByName(symName);
-			if (s != null) {
-				mState = SymSettingState.SET;
-				showSetSymDialog(s);
-			} else {
-				Toast.makeText(getContext(), "No symbol found", Toast.LENGTH_SHORT).show();
-			}
-		} else {
-			Toast.makeText(getContext(), "No symbol selected", Toast.LENGTH_SHORT).show();
-		}
-		*/
 	}
 
 	private void getSym(String symName, SymSettingState state) {
@@ -358,6 +334,13 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private void scan() {
 		RESULT res = reader.scan();
 		showResError(res);
+		updateScanButton();
+	}
+
+	private void abortScan() {
+		RESULT res = reader.abortScan();
+		showResError(res);
+		updateScanButton();
 	}
 
 	private void updateOpenBtn() {
@@ -365,6 +348,14 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			btnOpen.setText(R.string.open);
 		} else {
 			btnOpen.setText(R.string.close);
+		}
+	}
+
+	private void updateScanButton() {
+		if (reader.isScanning()) {
+			btnScan.setText(R.string.abort_scan);
+		} else {
+			btnScan.setText(R.string.scan);
 		}
 	}
 
@@ -550,6 +541,13 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	public void onScan(RESULT res, ScanResult data) {
 		Log.d(TAG, "onScan " + res);
 		log(data == null ? "null" : data.toString());
+
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				updateScanButton();
+			}
+		}, 10);
 	}
 
 	@Override
@@ -574,9 +572,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			showSetSymDialog(setting);
 		} else {
 			log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
-		}
-		if (res == RESULT.OK) {
-			settingMap.put(setting.getSymbol(), setting);
 		}
 	}
 
