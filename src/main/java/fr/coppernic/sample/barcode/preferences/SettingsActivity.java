@@ -15,7 +15,7 @@ import android.view.MenuItem;
 
 import fr.coppernic.sample.barcode.AppCompatActivity;
 import fr.coppernic.sample.barcode.R;
-import fr.coppernic.sdk.barcode.BarcodeType;
+import fr.coppernic.sdk.barcode.BarcodeReaderType;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -94,23 +94,23 @@ public class SettingsActivity extends AppCompatActivity {
 			                                                                    ""));
 	}
 
-	public static BarcodeType barcodeSettingToBarcodeType(String setting) {
-		BarcodeType type;
+	public static BarcodeReaderType barcodeSettingToBarcodeType(String setting) {
+		BarcodeReaderType type;
 		switch (setting) {
 			case TYPE_OPTICON_MDI3100:
-				type = BarcodeType.OPTICON_MDI3100;
+				type = BarcodeReaderType.OPTICON_MDI3100;
 				break;
 			case TYPE_OPTICON_MDL1000:
-				type = BarcodeType.OPTICON_MDL1000;
+				type = BarcodeReaderType.OPTICON_MDL1000;
 				break;
 			case TYPE_HONEYWELL_N6603_DECODED:
-				type = BarcodeType.HONEYWELL_N6603_DECODED;
+				type = BarcodeReaderType.HONEYWELL_N6603_DECODED;
 				break;
 			case TYPE_HONEYWELL_N6603_UNDECODED:
-				type = BarcodeType.HONEYWELL_N6603_UNDECODED;
+				type = BarcodeReaderType.HONEYWELL_N6603_UNDECODED;
 				break;
 			default:
-				type = BarcodeType.NONE;
+				type = BarcodeReaderType.NONE;
 		}
 		return type;
 	}
