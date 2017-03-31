@@ -58,4 +58,12 @@
     <string name="prefix">Prefix</string>
     <string name="suffix">Suffix</string>
     <string name="reload">Reload</string>
+    <string name="barcode_sound">Scan sound</string>
+    <string name="barcode_sound_summary">Play sound when scanning</string>
+    <string name="barcode_display">Scan display</string>
+    <string name="barcode_display_summary">Display icon during scan</string>
+    <string name="barcode_continuous_mode">Continuous mode</string>
+    <string name="barcode_continuous_mode_summary">Release button to abort scan</string>
+    <string name="barcode_soft_timeout">Scan timeout</string>
+    <string name="barcode_soft_timeout_summary">Timeout when scanning without continuous mode</string>
 </resources>

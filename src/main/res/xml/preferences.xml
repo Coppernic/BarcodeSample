@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto">
     <ListPreference
         android:defaultValue="@string/pref_barcode_reader_default"
         android:dialogTitle="@string/pref_title_barcode_reader_type"
@@ -18,5 +19,30 @@
         android:entryValues="@array/pref_barcode_bdt_values"
         android:key="key_barcode_bdt"
         android:title="@string/pref_barcode_bdt_title"
+        />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="key_barcode_sound"
+        android:title="@string/barcode_sound"
+        android:summary="@string/barcode_sound_summary"/>
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="key_barcode_display"
+        android:title="@string/barcode_display"
+        android:summary="@string/barcode_display_summary"/>
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:disableDependentsState="true"
+        android:key="key_barcode_continuous_mode"
+        android:title="@string/barcode_continuous_mode"
+        android:summary="@string/barcode_continuous_mode_summary"/>
+    <fr.coppernic.sdk.utils.ui.NumberPickerPreference
+        maxValue="200"
+        minValue="0"
+        android:dependency="key_barcode_continuous_mode"
+        android:defaultValue="3"
+        android:key="key_barcode_soft_timeout"
+        android:title="@string/barcode_soft_timeout"
+        android:summary="@string/barcode_soft_timeout_summary"
         />
 </PreferenceScreen>

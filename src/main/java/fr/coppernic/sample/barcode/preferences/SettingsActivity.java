@@ -7,15 +7,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
+import android.util.Log;
 import android.view.MenuItem;
 
 import fr.coppernic.sample.barcode.AppCompatActivity;
 import fr.coppernic.sample.barcode.R;
 import fr.coppernic.sdk.barcode.BarcodeReaderType;
+import fr.coppernic.sdk.barcode.core.GlobalConfig;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -30,9 +33,14 @@ import fr.coppernic.sdk.barcode.BarcodeReaderType;
  */
 public class SettingsActivity extends AppCompatActivity {
 
+	private static final String TAG = "SettingsActivity";
 	public final static String KEY_TYPE = "key_barcode_reader";
 	public final static String KEY_BAUDRATE = "key_barcode_bdt";
 	public final static String KEY_PORT = "key_barcode_port";
+	public final static String KEY_SOUND = "key_barcode_sound";
+	public final static String KEY_DISPLAY = "key_barcode_display";
+	public final static String KEY_CONTINUOUS = "key_barcode_continuous_mode";
+	public final static String KEY_TIMEOUT_SOFT = "key_barcode_soft_timeout";
 
 	public final static String TYPE_NONE = "-1";
 	public final static String TYPE_OPTICON_MDI3100 = "0";
@@ -44,8 +52,8 @@ public class SettingsActivity extends AppCompatActivity {
 	 * A preference value change listener that updates the preference's summary
 	 * to reflect its new value.
 	 */
-	private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener =
-		new Preference.OnPreferenceChangeListener() {
+	private static OnPreferenceChangeListener sBindPreferenceSummaryToValueListener =
+		new OnPreferenceChangeListener() {
 			@Override
 			public boolean onPreferenceChange(Preference preference, Object value) {
 				String stringValue = value.toString();
@@ -67,6 +75,54 @@ public class SettingsActivity extends AppCompatActivity {
 					// simple string representation.
 					preference.setSummary(stringValue);
 				}
+
+				GlobalConfig config = new GlobalConfig(preference.getContext());
+
+				switch (preference.getKey()){
+					case KEY_TIMEOUT_SOFT:
+						config.setScanTimeoutSoft((Integer) value);
+						break;
+				}
+				return true;
+			}
+		};
+
+	private static OnPreferenceChangeListener checkboxPrefListener = new OnPreferenceChangeListener() {
+		@Override
+		public boolean onPreferenceChange(Preference preference, Object newValue) {
+			Log.i(TAG, "onPreferenceChange, Key : " + preference.getKey() + " -> "
+			           + newValue.getClass() + "|" + newValue);
+			if(newValue instanceof Boolean){
+				boolean enable = (boolean) newValue;
+				GlobalConfig config = new GlobalConfig(preference.getContext());
+				switch (preference.getKey()){
+					case KEY_DISPLAY:
+						config.enableDisplay(enable);
+						break;
+					case KEY_SOUND:
+						config.enableSound(enable);
+						break;
+					case KEY_CONTINUOUS:
+						config.enableContinuous(enable);
+						break;
+				}
+			}
+			return true;
+		}
+	};
+	private static OnPreferenceChangeListener numberPrefListener =
+		new OnPreferenceChangeListener() {
+			@Override
+			public boolean onPreferenceChange(Preference preference, Object value) {
+				int val = (int) value;
+
+				GlobalConfig config = new GlobalConfig(preference.getContext());
+
+				switch (preference.getKey()){
+					case KEY_TIMEOUT_SOFT:
+						config.setScanTimeoutSoft(val);
+						break;
+				}
 				return true;
 			}
 		};
@@ -86,12 +142,28 @@ public class SettingsActivity extends AppCompatActivity {
 
 		// Trigger the listener immediately with the preference's
 		// current value.
-		sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-		                                                         PreferenceManager
-			                                                         .getDefaultSharedPreferences(
-				                                                         preference.getContext())
-			                                                         .getString(preference.getKey(),
-			                                                                    ""));
+		sBindPreferenceSummaryToValueListener
+			.onPreferenceChange(preference,
+			                    PreferenceManager
+				                    .getDefaultSharedPreferences(preference.getContext())
+				                    .getString(preference.getKey(), ""));
+	}
+
+	private static void setCheckboxPrefChangeListener(Preference preference){
+		preference.setOnPreferenceChangeListener(checkboxPrefListener);
+
+		checkboxPrefListener.onPreferenceChange(preference,
+		                                PreferenceManager.getDefaultSharedPreferences(
+		                                	preference.getContext())
+			                                .getBoolean(preference.getKey(), true));
+	}
+
+	private static void setNumberPickerChangeListener(Preference preference){
+		preference.setOnPreferenceChangeListener(numberPrefListener);
+		numberPrefListener.onPreferenceChange(preference,
+		                                      PreferenceManager.getDefaultSharedPreferences(
+			                                      preference.getContext())
+			                                      .getInt(preference.getKey(), 3));
 	}
 
 	public static BarcodeReaderType barcodeSettingToBarcodeType(String setting) {
@@ -167,6 +239,12 @@ public class SettingsActivity extends AppCompatActivity {
 			bindPreferenceSummaryToValue(findPreference(KEY_TYPE));
 			bindPreferenceSummaryToValue(findPreference(KEY_PORT));
 			bindPreferenceSummaryToValue(findPreference(KEY_BAUDRATE));
+			
+			setNumberPickerChangeListener(findPreference(KEY_TIMEOUT_SOFT));
+
+			setCheckboxPrefChangeListener(findPreference(KEY_DISPLAY));
+			setCheckboxPrefChangeListener(findPreference(KEY_SOUND));
+			setCheckboxPrefChangeListener(findPreference(KEY_CONTINUOUS));
 		}
 
 		@Override

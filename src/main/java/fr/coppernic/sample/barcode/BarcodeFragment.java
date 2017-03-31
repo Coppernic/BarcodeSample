@@ -198,6 +198,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	public void onStop() {
 		Log.d(TAG, "onStop");
 		close();
+		power(false);
 		super.onStop();
 	}
 
@@ -265,7 +266,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			reader.close();
 		}
 		updateOpenBtn();
-		power(false);
+		updateScanButton();
 	}
 
 	private void showResError(RESULT res) {
@@ -540,7 +541,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	@Override
 	public void onScan(RESULT res, ScanResult data) {
 		Log.d(TAG, "onScan " + res);
-		log(data == null ? "null" : data.toString());
+		log(data == null ? "null" : data.toString() + ", " + res);
 
 		handler.postDelayed(new Runnable() {
 			@Override
