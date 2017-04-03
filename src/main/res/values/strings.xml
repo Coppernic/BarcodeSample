@@ -66,4 +66,6 @@
     <string name="barcode_continuous_mode_summary">Release button to abort scan</string>
     <string name="barcode_soft_timeout">Scan timeout</string>
     <string name="barcode_soft_timeout_summary">Timeout when scanning without continuous mode</string>
+    <string name="display_startup_notif">Display barcode notification</string>
+    <string name="display_startup_notif_summary">Display barcode notification at startup</string>
 </resources>

@@ -215,7 +215,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		BarcodeFactory factory = BarcodeFactory.get().setBarcodeListener(this);
 		if (sharedPreferences.contains(SettingsActivity.KEY_BAUDRATE)) {
 			String bdt = sharedPreferences.getString(SettingsActivity.KEY_BAUDRATE, "9600");
-			factory.setBdt(Integer.parseInt(bdt));
+			factory.setBaudrate(Integer.parseInt(bdt));
 		}
 		if (sharedPreferences.contains(SettingsActivity.KEY_PORT)) {
 			factory.setPort(sharedPreferences.getString(SettingsActivity.KEY_PORT, ""));

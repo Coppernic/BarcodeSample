@@ -45,4 +45,9 @@
         android:title="@string/barcode_soft_timeout"
         android:summary="@string/barcode_soft_timeout_summary"
         />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="key_display_startup_notif"
+        android:title="@string/display_startup_notif"
+        android:summary="@string/display_startup_notif_summary"/>
 </PreferenceScreen>

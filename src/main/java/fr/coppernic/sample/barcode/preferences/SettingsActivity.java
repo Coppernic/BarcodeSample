@@ -41,6 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
 	public final static String KEY_DISPLAY = "key_barcode_display";
 	public final static String KEY_CONTINUOUS = "key_barcode_continuous_mode";
 	public final static String KEY_TIMEOUT_SOFT = "key_barcode_soft_timeout";
+	public final static String KEY_STARUP_NOTIF = "key_display_startup_notif";
 
 	public final static String TYPE_NONE = "-1";
 	public final static String TYPE_OPTICON_MDI3100 = "0";
@@ -82,6 +83,15 @@ public class SettingsActivity extends AppCompatActivity {
 					case KEY_TIMEOUT_SOFT:
 						config.setScanTimeoutSoft((Integer) value);
 						break;
+					case KEY_PORT:
+						config.setPort(stringValue);
+						break;
+					case KEY_BAUDRATE:
+						config.setBaudrate(Integer.parseInt(stringValue));
+						break;
+					case KEY_TYPE:
+						config.setBarcodeType(barcodeSettingToBarcodeType(stringValue));
+						break;
 				}
 				return true;
 			}
@@ -104,6 +114,9 @@ public class SettingsActivity extends AppCompatActivity {
 						break;
 					case KEY_CONTINUOUS:
 						config.enableContinuous(enable);
+						break;
+					case KEY_STARUP_NOTIF:
+						config.enableDisplayStartupNotif(enable);
 						break;
 				}
 			}
@@ -245,6 +258,7 @@ public class SettingsActivity extends AppCompatActivity {
 			setCheckboxPrefChangeListener(findPreference(KEY_DISPLAY));
 			setCheckboxPrefChangeListener(findPreference(KEY_SOUND));
 			setCheckboxPrefChangeListener(findPreference(KEY_CONTINUOUS));
+			setCheckboxPrefChangeListener(findPreference(KEY_STARUP_NOTIF));
 		}
 
 		@Override
