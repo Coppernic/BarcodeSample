@@ -184,11 +184,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	@Override
 	public void onStart() {
 		Log.d(TAG, "onStart");
-		//Close barcode service (on C-five)
-		Intent intent = new Intent(CpcDefinitions.INTENT_ACTION_STOP_BARCODE_SERVICE);
-		intent.setPackage(CpcOs.getSystemServicePackage(getContext()));
-		getContext().startService(intent);
-
+		stopService();
 		updateOpenBtn();
 		setUpReader();
 		super.onStart();
@@ -199,6 +195,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		Log.d(TAG, "onStop");
 		close();
 		power(false);
+		startService();
 		super.onStop();
 	}
 
@@ -209,6 +206,18 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			dialog.dismiss();
 		}
 		super.onDestroy();
+	}
+
+	private void startService() {
+		Intent intent = new Intent(CpcDefinitions.INTENT_ACTION_START_BARCODE_SERVICE);
+		intent.setPackage(CpcOs.getSystemServicePackage(getContext()));
+		getContext().startService(intent);
+	}
+
+	private void stopService() {
+		Intent intent = new Intent(CpcDefinitions.INTENT_ACTION_STOP_BARCODE_SERVICE);
+		intent.setPackage(CpcOs.getSystemServicePackage(getContext()));
+		getContext().startService(intent);
 	}
 
 	private void setUpReader() {

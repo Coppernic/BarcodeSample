@@ -23,7 +23,7 @@
         <item>/dev/ttyO1</item>
     </string-array>
     <string name="pref_barcode_bdt_title">Baud rate</string>
-    <string name="pref_barcode_bdt_default">9600</string>
+    <string name="pref_barcode_bdt_default">0</string>
     <string-array name="pref_barcode_bdt_entries">
         <item>9600</item>
         <item>19200</item>
