@@ -68,4 +68,6 @@
     <string name="barcode_soft_timeout_summary">Timeout when scanning without continuous mode</string>
     <string name="display_startup_notif">Display barcode notification</string>
     <string name="display_startup_notif_summary">Display barcode notification at startup</string>
+    <string name="barcode_use_connector">Use Connector</string>
+    <string name="barcode_use_connector_summary">Use barcode reader through service</string>
 </resources>

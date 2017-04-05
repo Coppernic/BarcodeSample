@@ -38,10 +38,11 @@ import fr.coppernic.sample.barcode.preferences.SettingsActivity;
 import fr.coppernic.sdk.barcode.BarcodeFactory;
 import fr.coppernic.sdk.barcode.BarcodeReader;
 import fr.coppernic.sdk.barcode.BarcodeReader.ScanResult;
+import fr.coppernic.sdk.barcode.BarcodeReaderType;
 import fr.coppernic.sdk.barcode.Symbol;
 import fr.coppernic.sdk.barcode.SymbolSetting;
 import fr.coppernic.sdk.barcode.SymbolSetting.SettingParam;
-import fr.coppernic.sdk.barcode.SymbolSetting.SymbolSettingDiff;
+import fr.coppernic.sdk.barcode.SymbolSettingDiff;
 import fr.coppernic.sdk.barcode.core.Parameter;
 import fr.coppernic.sdk.barcode.core.Parameter.ParamType;
 import fr.coppernic.sdk.utils.core.CpcBytes;
@@ -229,11 +230,14 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		if (sharedPreferences.contains(SettingsActivity.KEY_PORT)) {
 			factory.setPort(sharedPreferences.getString(SettingsActivity.KEY_PORT, ""));
 		}
-		if (sharedPreferences.contains((SettingsActivity.KEY_TYPE))) {
-			factory.setType(
-				SettingsActivity.barcodeSettingToBarcodeType(
+		if (sharedPreferences.contains(SettingsActivity.KEY_TYPE)) {
+			factory.setType(SettingsActivity.barcodeSettingToBarcodeType(
 					sharedPreferences.getString(SettingsActivity.KEY_TYPE,
 					                            SettingsActivity.TYPE_NONE)));
+		}
+		//Override previous setting if connector is checked
+		if (sharedPreferences.getBoolean(SettingsActivity.KEY_USE_CONNECTOR, false)) {
+			factory.setType(BarcodeReaderType.CONNECTOR);
 		}
 		// init power
 		power = getPowerMgmtFromReaderFactory(factory);
@@ -362,7 +366,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	}
 
 	private void updateScanButton() {
-		if (reader.isScanning()) {
+		if (reader != null && reader.isScanning()) {
 			btnScan.setText(R.string.abort_scan);
 		} else {
 			btnScan.setText(R.string.scan);

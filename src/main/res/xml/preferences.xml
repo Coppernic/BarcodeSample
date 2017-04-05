@@ -22,6 +22,11 @@
         />
     <CheckBoxPreference
         android:defaultValue="true"
+        android:key="key_use_connector"
+        android:title="@string/barcode_use_connector"
+        android:summary="@string/barcode_use_connector_summary"/>
+    <CheckBoxPreference
+        android:defaultValue="true"
         android:key="key_barcode_sound"
         android:title="@string/barcode_sound"
         android:summary="@string/barcode_sound_summary"/>
