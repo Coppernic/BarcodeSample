@@ -2,7 +2,6 @@ package fr.coppernic.sample.barcode;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,7 +45,6 @@ import fr.coppernic.sdk.barcode.SymbolSettingDiff;
 import fr.coppernic.sdk.barcode.core.Parameter;
 import fr.coppernic.sdk.barcode.core.Parameter.ParamType;
 import fr.coppernic.sdk.utils.core.CpcBytes;
-import fr.coppernic.sdk.utils.core.CpcDefinitions;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import fr.coppernic.sdk.utils.debug.Log;
 import fr.coppernic.sdk.utils.helpers.CpcOs;
@@ -59,6 +57,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	InstanceListener<BarcodeReader> {
 
 	private static final String TAG = "BarcodeFragment";
+	private final Handler handler = new Handler();
 	private Button btnOpen;
 	private Button btnFirm;
 	private Button btnScan;
@@ -84,7 +83,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private EditText dialogMin;
 	private EditText dialogMax;
 	private SymSettingState mState = SymSettingState.NONE;
-	private final Handler handler = new Handler();
 
 	public BarcodeFragment() {
 	}
@@ -185,7 +183,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	@Override
 	public void onStart() {
 		Log.d(TAG, "onStart");
-		stopService();
+		BarcodeReader.ServiceManager.stopService(getContext());
 		updateOpenBtn();
 		setUpReader();
 		super.onStart();
@@ -196,7 +194,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		Log.d(TAG, "onStop");
 		close();
 		power(false);
-		startService();
+		BarcodeReader.ServiceManager.startService(getContext());
 		super.onStop();
 	}
 
@@ -207,18 +205,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			dialog.dismiss();
 		}
 		super.onDestroy();
-	}
-
-	private void startService() {
-		Intent intent = new Intent(CpcDefinitions.INTENT_ACTION_START_BARCODE_SERVICE);
-		intent.setPackage(CpcOs.getSystemServicePackage(getContext()));
-		getContext().startService(intent);
-	}
-
-	private void stopService() {
-		Intent intent = new Intent(CpcDefinitions.INTENT_ACTION_STOP_BARCODE_SERVICE);
-		intent.setPackage(CpcOs.getSystemServicePackage(getContext()));
-		getContext().startService(intent);
 	}
 
 	private void setUpReader() {
@@ -232,8 +218,8 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		}
 		if (sharedPreferences.contains(SettingsActivity.KEY_TYPE)) {
 			factory.setType(SettingsActivity.barcodeSettingToBarcodeType(
-					sharedPreferences.getString(SettingsActivity.KEY_TYPE,
-					                            SettingsActivity.TYPE_NONE)));
+				sharedPreferences.getString(SettingsActivity.KEY_TYPE,
+				                            SettingsActivity.TYPE_NONE)));
 		}
 		//Override previous setting if connector is checked
 		if (sharedPreferences.getBoolean(SettingsActivity.KEY_USE_CONNECTOR, false)) {
