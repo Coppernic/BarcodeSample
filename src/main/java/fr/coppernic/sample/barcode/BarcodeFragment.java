@@ -1,14 +1,19 @@
 package fr.coppernic.sample.barcode;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +32,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -57,6 +63,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	InstanceListener<BarcodeReader> {
 
 	private static final String TAG = "BarcodeFragment";
+	private static final int MY_PERMISSIONS_REQUEST_CAMERA = 42;
 	private final Handler handler = new Handler();
 	private Button btnOpen;
 	private Button btnFirm;
@@ -76,6 +83,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private BarcodeReader reader;
 	private PowerMgmt power;
 	private CheckBox checkGetSym;
+	private CheckBox checkGetAllSym;
 	private Dialog dialog;
 	private Switch dialogSwitch;
 	private EditText dialogPrefix;
@@ -106,6 +114,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 				}
 			}
 		});
+		btnOpen.setEnabled(false); //will be enabled with the camera permission
 		btnFirm = (Button) view.findViewById(R.id.btnFirm);
 		btnFirm.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -145,6 +154,13 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 				getSym();
 			}
 		});
+		Button btnGetAllSym = (Button) view.findViewById(R.id.btnGetAllSym);
+		btnGetAllSym.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				getAllSym();
+			}
+		});
 		btnSetSym = (Button) view.findViewById(R.id.btnSetSym);
 		btnSetSym.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -165,11 +181,29 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		spinnerGetSym = (Spinner) view.findViewById(R.id.spinnerGetSym);
 		spinnerSetSym = (Spinner) view.findViewById(R.id.spinnerSetSym);
 		txtLog = (TextView) view.findViewById(R.id.txtLog);
+		txtLog.setMovementMethod(new ScrollingMovementMethod());
 		checkGetParam = (CheckBox) view.findViewById(R.id.checkGetParam);
 		checkGetSym = (CheckBox) view.findViewById(R.id.checkGetSym);
+		checkGetAllSym = (CheckBox) view.findViewById(R.id.checkReloadAll);
 
 		//init
 		power = null;
+
+		//permission
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			int permissionCheck = ContextCompat.checkSelfPermission(getContext(),
+			                                                        Manifest.permission.CAMERA);
+			/*
+			if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+				btnOpen.setEnabled(true);
+			} else {
+				btnOpen.setEnabled(false);
+				*/
+				requestPermissions(new String[]{Manifest.permission.CAMERA},
+				                   MY_PERMISSIONS_REQUEST_CAMERA);
+			//}
+		}
+
 		super.onViewCreated(view, savedInstanceState);
 	}
 
@@ -178,6 +212,20 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		Log.d(TAG, "onAttach");
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		super.onAttach(context);
+	}
+
+	//@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+	                                       @NonNull int[] grantResults) {
+		if(requestCode == MY_PERMISSIONS_REQUEST_CAMERA){
+			if (grantResults.length > 0
+			    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				btnOpen.setEnabled(true);
+			} else {
+				btnOpen.setEnabled(false);
+			}
+		}
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
 	@Override
@@ -308,6 +356,11 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private void getSym() {
 		String symName = (String) spinnerGetSym.getSelectedItem();
 		getSym(symName, SymSettingState.GET);
+	}
+
+	private void getAllSym(){
+		RESULT res = reader.getAllSymbolSettings(checkGetAllSym.isChecked());
+		showResError(res);
 	}
 
 	private void setSym() {
@@ -572,6 +625,14 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			showSetSymDialog(setting);
 		} else {
 			log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
+		}
+	}
+
+	@Override
+	public void onAllSymbolSettingsAvailable(RESULT res, Collection<SymbolSetting> list) {
+		log("onAllSymbolSettingsAvailable : " + res.toString() + ", " + list.size());
+		for(SymbolSetting s : list){
+			log(s.toString());
 		}
 	}
 
