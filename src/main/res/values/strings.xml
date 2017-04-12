@@ -2,15 +2,73 @@
     <string name="app_name" translatable="false">Barcode Sample</string>
     <string name="action_settings" translatable="false">Settings</string>
     <string name="pref_title_barcode_reader">Barcode reader</string>
-    <string name="pref_title_barcode_reader_type">Barcode reader type</string>
-    <string name="pref_barcode_reader_default">0</string>
+    <string name="pref_title_barcode_reader_type">Type</string>
+    <string name="pref_barcode_reader_default">-1</string>
     <string-array name="pref_barcode_reader_entries">
+        <item>None</item>
         <item>Mdi3100</item>
+        <item>n6603 decoded</item>
+        <item>n6603 undecoded</item>
     </string-array>
     <string-array name="pref_barcode_reader_values">
+        <item>-1</item>
         <item>0</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string name="pref_barcode_port_title">Port</string>
+    <string-array name="pref_barcode_port_list">
+        <item>/dev/ttyHS1</item>
+        <item>/dev/ttyO0</item>
+        <item>/dev/ttyO1</item>
+    </string-array>
+    <string name="pref_barcode_bdt_title">Baud rate</string>
+    <string name="pref_barcode_bdt_default">0</string>
+    <string-array name="pref_barcode_bdt_entries">
+        <item>9600</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>57600</item>
+        <item>115200</item>
+    </string-array>
+    <string-array name="pref_barcode_bdt_values">
+        <item>9600</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>57600</item>
+        <item>115200</item>
     </string-array>
 
     <string name="title_activity_settings">Barcode Sample Settings</string>
-
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="get_firmware">Get Fw</string>
+    <string name="scan">Scan</string>
+    <string name="abort_scan">Abort</string>
+    <string name="get_param">Get param</string>
+    <string name="set_param">Set param</string>
+    <string name="clear">Clear</string>
+    <string name="get_sym">Get Sym</string>
+    <string name="set_sym">Set Sym</string>
+    <string name="set_sym_title">Symbology</string>
+    <string name="set_sym_positive">Configure</string>
+    <string name="enable">Enable</string>
+    <string name="min">Min</string>
+    <string name="max">Max</string>
+    <string name="prefix">Prefix</string>
+    <string name="suffix">Suffix</string>
+    <string name="reload">Reload</string>
+    <string name="barcode_sound">Scan sound</string>
+    <string name="barcode_sound_summary">Play sound when scanning</string>
+    <string name="barcode_display">Scan display</string>
+    <string name="barcode_display_summary">Display icon during scan</string>
+    <string name="barcode_continuous_mode">Continuous mode</string>
+    <string name="barcode_continuous_mode_summary">Release button to abort scan</string>
+    <string name="barcode_soft_timeout">Scan timeout</string>
+    <string name="barcode_soft_timeout_summary">Timeout when scanning without continuous mode</string>
+    <string name="display_startup_notif">Display barcode notification</string>
+    <string name="display_startup_notif_summary">Display barcode notification at startup</string>
+    <string name="barcode_use_connector">Use Connector</string>
+    <string name="barcode_use_connector_summary">Use barcode reader through service</string>
+    <string name="get_all_sym">Get All Sym Settings</string>
 </resources>

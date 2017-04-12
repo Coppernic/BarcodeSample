@@ -1,13 +1,21 @@
 package fr.coppernic.sample.barcode;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
+
+import fr.coppernic.sample.barcode.preferences.SettingsActivity;
+import fr.coppernic.sdk.utils.helpers.CpcOs;
 
 public class BarcodeActivity extends AppCompatActivity {
+
+	private static final String TAG = "BarcodeActivity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -15,6 +23,18 @@ public class BarcodeActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_barcode);
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+
+		int rot = getWindowManager().getDefaultDisplay().getRotation();
+		Log.v(TAG, "Rotation : " + rot);
+		if (CpcOs.isIntrabet()) {
+			setRequestedOrientation(
+				rot == Surface.ROTATION_0 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+				                          : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		} else {
+			setRequestedOrientation(
+				rot == Surface.ROTATION_0 ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+				                          : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		}
 	}
 
 	@Override

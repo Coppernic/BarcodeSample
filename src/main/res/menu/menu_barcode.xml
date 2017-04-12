@@ -4,7 +4,8 @@
       tools:context="fr.coppernic.sample.barcode.BarcodeActivity">
     <item
         android:id="@+id/action_settings"
+        android:icon="@mipmap/ic_action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"
-        app:showAsAction="never"/>
+        app:showAsAction="ifRoom"/>
 </menu>
