@@ -509,7 +509,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		return factory.build();
 	}
 
-
 	private Symbol getSymbolByName(String name) {
 		for (Symbol s : reader.getSupportedSymbols()) {
 			if (s.getName().equals(name)) {

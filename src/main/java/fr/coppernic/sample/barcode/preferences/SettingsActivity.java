@@ -3,7 +3,6 @@ package fr.coppernic.sample.barcode.preferences;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -13,10 +12,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
-import android.util.Log;
 import android.view.MenuItem;
-
-import java.util.Locale;
 
 import fr.coppernic.sample.barcode.AppCompatActivity;
 import fr.coppernic.sample.barcode.R;
@@ -39,11 +35,6 @@ public class SettingsActivity extends AppCompatActivity {
 	public final static String KEY_TYPE = "key_barcode_reader";
 	public final static String KEY_BAUDRATE = "key_barcode_bdt";
 	public final static String KEY_PORT = "key_barcode_port";
-	public final static String KEY_SOUND = "key_barcode_sound";
-	public final static String KEY_DISPLAY = "key_barcode_display";
-	public final static String KEY_CONTINUOUS = "key_barcode_continuous_mode";
-	public final static String KEY_TIMEOUT_SOFT = "key_barcode_soft_timeout";
-	public final static String KEY_STARTUP_NOTIF = "key_display_startup_notif";
 	public final static String KEY_USE_CONNECTOR = "key_use_connector";
 	public final static String TYPE_NONE = "-1";
 	public final static String TYPE_OPTICON_MDI3100 = "0";
@@ -80,11 +71,7 @@ public class SettingsActivity extends AppCompatActivity {
 				}
 
 				GlobalConfig config = new GlobalConfig(preference.getContext());
-
 				switch (preference.getKey()) {
-					case KEY_TIMEOUT_SOFT:
-						config.setScanTimeoutSoft((Integer) value);
-						break;
 					case KEY_PORT:
 						config.setPort(stringValue);
 						break;
@@ -93,50 +80,6 @@ public class SettingsActivity extends AppCompatActivity {
 						break;
 					case KEY_TYPE:
 						config.setBarcodeType(barcodeSettingToBarcodeType(stringValue));
-						break;
-				}
-				return true;
-			}
-		};
-
-	private static OnPreferenceChangeListener checkboxPrefListener =
-		new OnPreferenceChangeListener() {
-			@Override
-			public boolean onPreferenceChange(Preference preference, Object newValue) {
-				Log.i(TAG, "onPreferenceChange, Key : " + preference.getKey() + " -> "
-				           + newValue.getClass() + "|" + newValue);
-				if (newValue instanceof Boolean) {
-					boolean enable = (boolean) newValue;
-					GlobalConfig config = new GlobalConfig(preference.getContext());
-					switch (preference.getKey()) {
-						case KEY_DISPLAY:
-							config.enableDisplay(enable);
-							break;
-						case KEY_SOUND:
-							config.enableSound(enable);
-							break;
-						case KEY_CONTINUOUS:
-							config.enableContinuous(enable);
-							break;
-						case KEY_STARTUP_NOTIF:
-							config.enableDisplayStartupNotif(enable);
-							break;
-					}
-				}
-				return true;
-			}
-		};
-	private static OnPreferenceChangeListener numberPrefListener =
-		new OnPreferenceChangeListener() {
-			@Override
-			public boolean onPreferenceChange(Preference preference, Object value) {
-				int val = (int) value;
-
-				GlobalConfig config = new GlobalConfig(preference.getContext());
-
-				switch (preference.getKey()) {
-					case KEY_TIMEOUT_SOFT:
-						config.setScanTimeoutSoft(val);
 						break;
 				}
 				return true;
@@ -165,23 +108,6 @@ public class SettingsActivity extends AppCompatActivity {
 				                    .getString(preference.getKey(), ""));
 	}
 
-	private static void setCheckboxPrefChangeListener(Preference preference) {
-		preference.setOnPreferenceChangeListener(checkboxPrefListener);
-
-		checkboxPrefListener.onPreferenceChange(preference,
-		                                        PreferenceManager.getDefaultSharedPreferences(
-			                                        preference.getContext())
-			                                        .getBoolean(preference.getKey(), true));
-	}
-
-	private static void setNumberPickerChangeListener(Preference preference) {
-		preference.setOnPreferenceChangeListener(numberPrefListener);
-		numberPrefListener.onPreferenceChange(preference,
-		                                      PreferenceManager.getDefaultSharedPreferences(
-			                                      preference.getContext())
-			                                      .getInt(preference.getKey(), 3));
-	}
-
 	public static BarcodeReaderType barcodeSettingToBarcodeType(String setting) {
 		BarcodeReaderType type;
 		switch (setting) {
@@ -203,57 +129,11 @@ public class SettingsActivity extends AppCompatActivity {
 		return type;
 	}
 
-	public static String barcodeTypeToBarcodeSetting(BarcodeReaderType type) {
-		String ret;
-		switch (type) {
-			case OPTICON_MDL1000:
-				ret = TYPE_OPTICON_MDL1000;
-				break;
-			case OPTICON_MDI3100:
-				ret = TYPE_OPTICON_MDI3100;
-				break;
-			case HONEYWELL_N6603_DECODED:
-				ret = TYPE_HONEYWELL_N6603_DECODED;
-				break;
-			case HONEYWELL_N6603_UNDECODED:
-				ret = TYPE_HONEYWELL_N6603_UNDECODED;
-				break;
-			case CONNECTOR:
-			case NONE:
-			default:
-				ret = TYPE_NONE;
-				break;
-		}
-		return ret;
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setContentView(R.layout.settings_activity);
 		setupActionBar();
 		setupFragment();
-
-		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
-		initPreferences();
-	}
-
-	private void initPreferences() {
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		GlobalConfig config = new GlobalConfig(this);
-
-		sharedPreferences.edit()
-			.putString(KEY_PORT, config.getPort())
-			.putString(KEY_BAUDRATE, String.format(Locale.US, "%d", config.getBaudrate()))
-			.putString(KEY_TYPE,
-			           barcodeTypeToBarcodeSetting(config.getBarcodeType()))
-			.putBoolean(KEY_CONTINUOUS, config.isContinuousEnabled())
-			.putBoolean(KEY_DISPLAY, config.isDisplayEnabled())
-			.putBoolean(KEY_SOUND, config.isSoundEnabled())
-			.putBoolean(KEY_STARTUP_NOTIF, config.isDisplayStartNotifEnabled())
-			.putInt(KEY_TIMEOUT_SOFT, config.getScanTimeoutSoft())
-			.apply();
 	}
 
 	@Override
@@ -300,14 +180,6 @@ public class SettingsActivity extends AppCompatActivity {
 			bindPreferenceSummaryToValue(findPreference(KEY_TYPE));
 			bindPreferenceSummaryToValue(findPreference(KEY_PORT));
 			bindPreferenceSummaryToValue(findPreference(KEY_BAUDRATE));
-
-			setNumberPickerChangeListener(findPreference(KEY_TIMEOUT_SOFT));
-
-			setCheckboxPrefChangeListener(findPreference(KEY_DISPLAY));
-			setCheckboxPrefChangeListener(findPreference(KEY_SOUND));
-			setCheckboxPrefChangeListener(findPreference(KEY_CONTINUOUS));
-			setCheckboxPrefChangeListener(findPreference(KEY_STARTUP_NOTIF));
-			setCheckboxPrefChangeListener(findPreference(KEY_USE_CONNECTOR));
 		}
 
 		@Override
