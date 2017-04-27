@@ -330,7 +330,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 	private void getParam() {
 		ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
 		if (type != null) {
-			RESULT res = reader.getParameterValue(type, checkGetParam.isChecked());
+			RESULT res = reader.getParameter(type, checkGetParam.isChecked());
 			showResError(res);
 		}
 	}
@@ -343,7 +343,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 				int val = Integer.parseInt(value);
 				Parameter parameter = new Parameter();
 				parameter.set(type, val);
-				RESULT res = reader.setParameterValue(parameter);
+				RESULT res = reader.setParameter(parameter);
 				showResError(res);
 			} catch (Exception e) {
 				Toast.makeText(getContext(), "Wrong value format", Toast.LENGTH_SHORT).show();
@@ -657,7 +657,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 
 	@Override
 	public void onDisposed(BarcodeReader instance) {
-		Log.d(TAG, "onCreated " + instance);
+		Log.d(TAG, "onDisposed " + instance);
 		reader = null;
 		enableView(false);
 	}

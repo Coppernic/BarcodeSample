@@ -17,7 +17,7 @@ import android.view.MenuItem;
 import fr.coppernic.sample.barcode.AppCompatActivity;
 import fr.coppernic.sample.barcode.R;
 import fr.coppernic.sdk.barcode.BarcodeReaderType;
-import fr.coppernic.sdk.barcode.core.GlobalConfig;
+import fr.coppernic.sdk.barcode.GlobalConfig;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -70,7 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
 					preference.setSummary(stringValue);
 				}
 
-				GlobalConfig config = new GlobalConfig(preference.getContext());
+				GlobalConfig config = GlobalConfig.Builder.get(preference.getContext());
 				switch (preference.getKey()) {
 					case KEY_PORT:
 						config.setPort(stringValue);
