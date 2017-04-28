@@ -35,15 +35,13 @@ android {
     }
 }
 
-String supportV = "25.3.0"
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:appcompat-v7:${supportV}"
+    compile "com.android.support:appcompat-v7:${versions.support}"
     compile "com.android.support.constraint:constraint-layout:${versions.supportConstraint}"
-    compile "com.android.support:design:${supportV}"
-    compile "com.android.support:support-v4:${supportV}"
-    compile "com.android.support:support-vector-drawable:${supportV}"
+    compile "com.android.support:design:${versions.support}"
+    compile "com.android.support:support-v4:${versions.support}"
+    compile "com.android.support:support-vector-drawable:${versions.support}"
     compile "com.afollestad.material-dialogs:core:0.9.4.2"
     compile "com.afollestad.material-dialogs:commons:0.9.4.2"
     compile project(":Sdk:CpcBarcode")
@@ -51,8 +49,4 @@ dependencies {
     compile project(":Sdk:CpcUtilsLib")
 
     testCompile "junit:junit:4.12"
-
-    androidTestCompile("com.android.support.test.espresso:espresso-core:2.2.2", {
-        exclude group: "com.android.support", module: "support-annotations"
-    })
 }
