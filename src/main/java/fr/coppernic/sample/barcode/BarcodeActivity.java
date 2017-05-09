@@ -27,13 +27,14 @@ public class BarcodeActivity extends AppCompatActivity {
 		int rot = getWindowManager().getDefaultDisplay().getRotation();
 		Log.v(TAG, "Rotation : " + rot);
 		if (CpcOs.isIntrabet()) {
-			setRequestedOrientation(
-				rot == Surface.ROTATION_0 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-				                          : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		} else if (CpcOs.isC8()) {
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 		} else {
 			setRequestedOrientation(
-				rot == Surface.ROTATION_0 ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-				                          : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+				(rot == Surface.ROTATION_0
+				 || rot == Surface.ROTATION_180) ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+				                                 : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		}
 	}
 
