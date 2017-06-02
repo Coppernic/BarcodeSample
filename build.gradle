@@ -1,3 +1,5 @@
+
+
 apply plugin: 'com.android.application'
 
 if (hasProperty("moduleOptions")) {
@@ -48,9 +50,16 @@ dependencies {
     compile("com.afollestad.material-dialogs:commons:0.9.4.2") {
         exclude group: 'com.android.support'
     }
-    compile project(":Sdk:CpcBarcode")
-    compile project(":Sdk:CpcPowerMgmt")
-    compile project(":Sdk:CpcUtilsLib")
+
+    if(isRoot(project)) {
+        compile("fr.coppernic.sdk.barcode:CpcBarcode:2.0.3@aar")
+        compile("fr.coppernic.cpcframework.cpcpowermgmt:CpcPowerMgmt:3.6.0@aar")
+        compile("fr.coppernic.cpcframework.cpcutils:CpcUtilsLib:6.6.1@aar")
+    } else {
+        compile project(":Sdk:CpcBarcode")
+        compile project(":Sdk:CpcPowerMgmt")
+        compile project(":Sdk:CpcUtilsLib")
+    }
 
     testCompile "junit:junit:4.12"
 }
