@@ -52,14 +52,22 @@ dependencies {
     }
 
     if(isRoot(project)) {
-        compile("fr.coppernic.sdk.barcode:CpcBarcode:2.0.3@aar")
-        compile("fr.coppernic.cpcframework.cpcpowermgmt:CpcPowerMgmt:3.6.0@aar")
-        compile("fr.coppernic.cpcframework.cpcutils:CpcUtilsLib:6.6.1@aar")
+        compile("fr.coppernic.sdk.barcode:CpcBarcode:3.0.2@aar")
+        compile("fr.coppernic.sdk.core:CpcCore:1.0.1@aar")
+        compile("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.9.0@aar")
     } else {
         compile project(":Sdk:CpcBarcode")
-        compile project(":Sdk:CpcPowerMgmt")
+        compile project(":Sdk:CpcCore")
         compile project(":Sdk:CpcUtilsLib")
     }
 
     testCompile "junit:junit:4.12"
+
+    androidTestCompile("com.android.support.test:runner:${versions.supportTestRunner}") {
+        exclude group: 'com.android.support'
+    }
+    // Set this dependency to use JUnit 4 rules
+    androidTestCompile("com.android.support.test:rules:${versions.supportTestRules}") {
+        exclude group: 'com.android.support'
+    }
 }

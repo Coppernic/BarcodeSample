@@ -37,8 +37,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-import fr.coppernic.cpcframework.cpcpowermgmt.PowerMgmt;
-import fr.coppernic.cpcframework.cpcpowermgmt.PowerMgmtFactory;
 import fr.coppernic.sample.barcode.preferences.SettingsActivity;
 import fr.coppernic.sdk.barcode.BarcodeFactory;
 import fr.coppernic.sdk.barcode.BarcodeReader;
@@ -50,6 +48,16 @@ import fr.coppernic.sdk.barcode.SymbolSetting.SettingParam;
 import fr.coppernic.sdk.barcode.SymbolSettingDiff;
 import fr.coppernic.sdk.barcode.core.Parameter;
 import fr.coppernic.sdk.barcode.core.Parameter.ParamType;
+import fr.coppernic.sdk.powermgmt.PowerMgmt;
+import fr.coppernic.sdk.powermgmt.PowerMgmtFactory;
+import fr.coppernic.sdk.powermgmt.cizi.identifiers.InterfacesCizi;
+import fr.coppernic.sdk.powermgmt.cizi.identifiers.ManufacturersCizi;
+import fr.coppernic.sdk.powermgmt.cizi.identifiers.ModelsCizi;
+import fr.coppernic.sdk.powermgmt.cizi.identifiers.PeripheralTypesCizi;
+import fr.coppernic.sdk.powermgmt.cone.identifiers.InterfacesCone;
+import fr.coppernic.sdk.powermgmt.cone.identifiers.ManufacturersCone;
+import fr.coppernic.sdk.powermgmt.cone.identifiers.ModelsCone;
+import fr.coppernic.sdk.powermgmt.cone.identifiers.PeripheralTypesCone;
 import fr.coppernic.sdk.utils.core.CpcBytes;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import fr.coppernic.sdk.utils.debug.Log;
@@ -469,25 +477,16 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			.setContext(getContext())
 			.setTimeToSleepAfterPowerOn(500);
 		if (CpcOs.isCone()) {
-			factory.setPeripheralTypes(
-				fr.coppernic.cpcframework.cpcpowermgmt.cone.PowerMgmt.PeripheralTypesCone
-					.BarcodeReader);
-			factory.setInterfaces(
-				fr.coppernic.cpcframework.cpcpowermgmt.cone.PowerMgmt.InterfacesCone.ScannerPort);
+			factory.setPeripheralTypes(PeripheralTypesCone.BarcodeReader);
+			factory.setInterfaces(InterfacesCone.ScannerPort);
 			switch (bf.getType()) {
 				case OPTICON_MDI3100:
-					factory.setManufacturers(
-						fr.coppernic.cpcframework.cpcpowermgmt.cone.PowerMgmt.ManufacturersCone
-							.Opticon);
-					factory.setModels(
-						fr.coppernic.cpcframework.cpcpowermgmt.cone.PowerMgmt.ModelsCone.Mdi3100);
+					factory.setManufacturers(ManufacturersCone.Opticon);
+					factory.setModels(ModelsCone.Mdi3100);
 					break;
 				case HONEYWELL_N6603_DECODED:
-					factory.setManufacturers(
-						fr.coppernic.cpcframework.cpcpowermgmt.cone.PowerMgmt.ManufacturersCone
-							.Honeywell);
-					factory.setModels(
-						fr.coppernic.cpcframework.cpcpowermgmt.cone.PowerMgmt.ModelsCone.n6603_decoded);
+					factory.setManufacturers(ManufacturersCone.Honeywell);
+					factory.setModels(ModelsCone.n6603_decoded);
 					break;
 				case HONEYWELL_N6603_UNDECODED:
 				case OPTICON_MDL1000:
@@ -495,16 +494,10 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 					break;
 			}
 		} else if (CpcOs.isCizi()) {
-			factory.setPeripheralTypes(
-				fr.coppernic.cpcframework.cpcpowermgmt.cizi.PowerMgmt.PeripheralTypesCizi
-					.BarcodeReader);
-			factory.setInterfaces(
-				fr.coppernic.cpcframework.cpcpowermgmt.cizi.PowerMgmt.InterfacesCizi.ScannerPort);
-			factory.setManufacturers(
-				fr.coppernic.cpcframework.cpcpowermgmt.cizi.PowerMgmt.ManufacturersCizi
-					.Opticon);
-			factory.setModels(
-				fr.coppernic.cpcframework.cpcpowermgmt.cizi.PowerMgmt.ModelsCizi.Mdi3100);
+			factory.setPeripheralTypes(PeripheralTypesCizi.BarcodeReader);
+			factory.setInterfaces(InterfacesCizi.ScannerPort);
+			factory.setManufacturers(ManufacturersCizi.Opticon);
+			factory.setModels(ModelsCizi.Mdi3100);
 		}
 		return factory.build();
 	}
