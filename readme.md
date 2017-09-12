@@ -22,7 +22,7 @@ To build run this command :
 repositories {
     mavenCentral()
     jcenter()
-    maven { url 'http://artifactory.coppernic.fr/artifactory/libs-release' }
+    maven { url 'https://artifactory.coppernic.fr/artifactory/libs-release' }
 }
 
 dependencies {
