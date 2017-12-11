@@ -14,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +61,6 @@ import fr.coppernic.sdk.powermgmt.cone.identifiers.ModelsCone;
 import fr.coppernic.sdk.powermgmt.cone.identifiers.PeripheralTypesCone;
 import fr.coppernic.sdk.utils.core.CpcBytes;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
-import fr.coppernic.sdk.utils.debug.Log;
 import fr.coppernic.sdk.utils.helpers.CpcOs;
 import fr.coppernic.sdk.utils.io.InstanceListener;
 
@@ -460,22 +460,11 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 		txtLog.setText("");
 	}
 
-	private void power(boolean b) {
-		try {
-			if (b) {
-				power.powerOn();
-			} else {
-				power.powerOff();
-			}
-		} catch (InvalidParameterException ignore) {
-			Log.w(TAG, ignore.toString());
-		}
-	}
-
 	private PowerMgmt getPowerMgmtFromReaderFactory(BarcodeFactory bf) {
 		PowerMgmtFactory factory = PowerMgmtFactory.get()
 			.setContext(getContext())
-			.setTimeToSleepAfterPowerOn(500);
+			.setTimeToSleepAfterPowerOn(500)
+			.setTimeToSleepAfterPowerOff(300);
 		if (CpcOs.isCone()) {
 			factory.setPeripheralTypes(PeripheralTypesCone.BarcodeReader);
 			factory.setInterfaces(InterfacesCone.ScannerPort);
@@ -500,6 +489,18 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
 			factory.setModels(ModelsCizi.Mdi3100);
 		}
 		return factory.build();
+	}
+
+	private void power(boolean b) {
+		try {
+			if (b) {
+				power.powerOn();
+			} else {
+				power.powerOff();
+			}
+		} catch (InvalidParameterException ignore) {
+			Log.w(TAG, ignore.toString());
+		}
 	}
 
 	private Symbol getSymbolByName(String name) {

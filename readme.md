@@ -47,8 +47,10 @@ We need to power the barcode reader before using it
 ```java
 PowerMgmtFactory factory = PowerMgmtFactory.get()
             .setContext(getContext())
-            // 500ms is neede by the reader to initialize
+            // 500ms is needed by the reader to initialize
             .setTimeToSleepAfterPowerOn(500);
+            // Waiting for the line to be down (Capacitive effect of some hardware)
+            .setTimeToSleepAfterPowerOff(200);
 
 // In this example we are telling Powermgmt to use Barcore reader Opticon Mdi3100 that is installed on C-One
 factory.setPeripheralTypes(PeripheralTypesCone.BarcodeReader);
