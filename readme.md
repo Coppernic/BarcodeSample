@@ -26,19 +26,23 @@ repositories {
 }
 
 dependencies {
-    compile("fr.coppernic.sdk.barcode:CpcBarcode:3.0.2@aar") {
+    compile("fr.coppernic.sdk.barcode:CpcBarcode:3.2.0@aar") {
         transitive = true
     }
-    compile("fr.coppernic.sdk.core:CpcCore:1.0.1@aar") {
+    compile("fr.coppernic.sdk.core:CpcCore:1.5.0@aar") {
       transitive = true
     }
-    compile("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.9.0@aar") {
+    compile("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.13.0@aar") {
       transitive = true
     }
 }
 ```
 
 ### PowerMgmt
+
+> Description above is now deprecated. To use power management, please read [this](https://coppernic.github.io/coppernic/2017/10/23/Power-Management.html)
+
+----
 
 We need to power the barcode reader before using it
 
@@ -69,83 +73,191 @@ power.powerOn();
 power.powerOff();
 ```
 
-### Barcode Reader
+CpcBarcode API
+--------------
 
- - First get an instance of BarcodeReader
+### Get a reader
 
- ```java
-BarcodeListener barcodeListener = new BarcodeListener(){
-...
-};
+A barcode reader instance is build using the `BarcodeFactory` class. Barcode reader
+instance is given asynchronously. `onCreated()` method is called with the newly created
+ instance. `onDisposed()` is called if reader instance is disposed for any reason or if
+  the build has failed.
 
+```java
+public class example implements BarcodeReader.BarcodeListener,
+InstanceListener<BarcodeReader> {
 
-BarcodeFactory factory = BarcodeFactory.get()
-                                       .setBarcodeListener(barcodeListener)
-                                       // C-One are shipped with reader working at 115200
-                                       .setBaudrate(115200)
-                                       //Port should be good by default
-                                       //Type should be good by default also
-                                       .setType(BarcodeReaderType.OPTICON_MDI3100);
+    private BarcodeReader reader;
 
-factory.build(context, new InstanceListener<BarcodeReader>{
+    public void makeReader() {
+         BarcodeFactory factory = BarcodeFactory.get();
+         //Mandatory
+         factory.setBarcodeListener(this);
 
+         //Optional
+         factory.setBaudrate(115200);
+         factory.setPort("/dev/ttyHS1");
+         factory.setType(fr.coppernic.sdk.barcode.BarcodeReaderType.OPTICON_MDI3100);
+
+         boolean ok = factory.build(context, this);
+    }
+
+    // Called with the new instance
     @Override
     public void onCreated(BarcodeReader instance) {
-        //Store instance here
+        Log.d(TAG, "onCreated " + instance);
+        reader = instance;
+        if (instance == null) {
+            log("No reader available");
+        } else {
+            //enable power
+            power(true);
+        }
     }
 
+    // Called if an error occurred.
     @Override
     public void onDisposed(BarcodeReader instance) {
-        // Should never be called
+        Log.d(TAG, "onDisposed " + instance);
+        reader = null;
     }
 
+    // [...]
 }
-)
 ```
- 
- - Open BarcodeReader
-  
-```java
-reader.open();
 
-BarcodeListener barcodeListener = new BarcodeListener(){
+### Reader opening
+
+Opening is done asynchronously. `onOpened()` is called with the result of the operation.
+
+```java
+public class example implements BarcodeReader.BarcodeListener,
+InstanceListener<BarcodeReader> {
+
+    private void open() {
+        reader.open();
+    }
 
     @Override
     public void onOpened(RESULT res) {
-        //Then this method is called whith the result
+        Toast.makeText(getContext(), res.toString(), Toast.LENGTH_SHORT).show();
+        // Do some operation after open here
     }
 
-...
-};
+}
 ```
 
- - Trig a scan
- 
-```java
-reader.scan();
+### Reader closing
 
-BarcodeListener barcodeListener = new BarcodeListener(){
+Be sure to close the reader when you are done with it. It can then free some resources.
+
+```java
+public class example implements BarcodeReader.BarcodeListener,
+InstanceListener<BarcodeReader> {
+
+    private void close() {
+        Log.d(TAG, "close");
+        if (reader != null && reader.isOpened()) {
+            reader.close();
+        }
+    }
+
+}
+```
+
+### Get firmware version
+
+```java
+public class example implements BarcodeReader.BarcodeListener,
+InstanceListener<BarcodeReader> {
+
+    private void getFirmware() {
+        RESULT res = reader.getFirmware();
+        Toast.makeText(getContext(), res.toString(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onFirmware(RESULT res, String s) {
+        Log.d(TAG, "onFirmware " + res);
+        log("Firmware : " + (s == null ? "null" : s));
+    }
+
+}
+```
+
+### Scan data
+
+```java
+public class example implements BarcodeReader.BarcodeListener,
+InstanceListener<BarcodeReader> {
+
+    private void scan() {
+        RESULT res = reader.scan();
+        Toast.makeText(getContext(), res.toString(), Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     public void onScan(RESULT res, ScanResult data) {
-        //Then this method is called
-        
         Log.d(TAG, "onScan " + res);
-        Log.d(TAG, data == null ? "null" : data.toString() + ", " + res);
+        log(data == null ? "null" : data.toString() + ", " + res);
     }
-...
-};
-
+}
 ```
 
- - Don't forget to close the reader to release resources
-  
-```
-reader.close();
+### Connector
+
+Connector is a special kind of reader. It is connecting to CpcSystemServices to get an instance of reader.
+Here is how to get one :
+
+
+```java
+public class example implements BarcodeReader.BarcodeListener,
+InstanceListener<BarcodeReader> {
+
+    private BarcodeReader reader;
+
+    public void makeReader() {
+         BarcodeFactory factory = BarcodeFactory.get();
+         //Mandatory
+         factory.setBarcodeListener(this);
+
+         GlobalConfig globalConfig = GlobalConfig.Builder.get(mContext);
+         globalConfig.setPort(/*port of barcode reader*/);
+         globalConfig.setBarcodeType(/*type of barcode reader*/);
+
+         //Optional
+         factory.setType(fr.coppernic.sdk.barcode.BarcodeReaderType.CONNECTOR);
+
+         boolean ok = factory.build(context, this);
+    }
+
+    // Called with the new instance
+    @Override
+    public void onCreated(BarcodeReader instance) {
+        Log.d(TAG, "onCreated " + instance);
+        reader = instance;
+        if (instance == null) {
+            log("No reader available");
+        } else {
+            //enable power
+            power(true);
+        }
+    }
+
+    // Called if an error occurred.
+    @Override
+    public void onDisposed(BarcodeReader instance) {
+        Log.d(TAG, "onDisposed " + instance);
+        reader = null;
+    }
+
+    // [...]
+}
 ```
 
- - You may power off when you are done with the scanner
- 
-```
-power.powerOff();
-```
+#### Timeout
+
+Service is automatically configuring reader timeout to infinite.
+As soon as the barcode service starts (when you disconnect from connector)
+timeout settings will change. If you need to handle a specific timeout,
+then you need to configure it each time you get the connector instance.
