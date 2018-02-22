@@ -1,79 +1,23 @@
-
-
-apply plugin: 'com.android.application'
-
-if (hasProperty("moduleOptions")) {
-    moduleOptions {
-        system true
-        user true
-        configBuildTools false
-        if (moduleOptions.hasProperty('configSdkVersion')) {
-            configSdkVersion false
-        }
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.noveogroup.android:check:1.2.4'
     }
 }
 
-android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
-
-    defaultConfig {
-        applicationId "fr.coppernic.sample.barcode"
-        minSdkVersion 17
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-        vectorDrawables.useSupportLibrary = true
-        manifestPlaceholders = [sharedUserId: "$applicationId"]
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url "https://artifactory.coppernic.fr/artifactory/libs-release" }
     }
 }
 
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:appcompat-v7:${versions.support}"
-    compile "com.android.support.constraint:constraint-layout:${versions.supportConstraint}"
-    compile "com.android.support:design:${versions.support}"
-    compile "com.android.support:support-v4:${versions.support}"
-    compile "com.android.support:support-vector-drawable:${versions.support}"
-    compile("com.afollestad.material-dialogs:core:0.9.4.2") {
-        exclude group: 'com.android.support'
-    }
-    compile("com.afollestad.material-dialogs:commons:0.9.4.2") {
-        exclude group: 'com.android.support'
-    }
-
-    if(isRoot(project)) {
-        compile("fr.coppernic.sdk.barcode:CpcBarcode:3.0.2@aar") {
-            transitive = true
-        }
-        compile("fr.coppernic.sdk.core:CpcCore:1.0.1@aar") {
-            transitive = true
-        }
-        compile("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.9.0@aar") {
-            transitive = true
-        }
-    } else {
-        compile project(":Sdk:CpcBarcode")
-        compile project(":Sdk:CpcCore")
-        compile project(":Sdk:CpcUtilsLib")
-    }
-
-    testCompile "junit:junit:4.12"
-
-    androidTestCompile("com.android.support.test:runner:${versions.supportTestRunner}") {
-        exclude group: 'com.android.support'
-    }
-    // Set this dependency to use JUnit 4 rules
-    androidTestCompile("com.android.support.test:rules:${versions.supportTestRules}") {
-        exclude group: 'com.android.support'
-    }
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }

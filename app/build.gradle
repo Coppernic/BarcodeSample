@@ -1,0 +1,91 @@
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath "gradle.plugin.coppernic:android-config:0.0.3"
+    }
+}
+
+plugins {
+    id "fr.coppernic.versioning" version "3.1.2"
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'fr.coppernic.extensions'
+
+copper {
+    options {
+        system true
+        user true
+    }
+}
+
+apply plugin: 'fr.coppernic.android'
+
+repositories {
+    google()
+    jcenter()
+    maven { url "https://artifactory.coppernic.fr/artifactory/libs-release" }
+}
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        applicationId "fr.coppernic.sample.barcode"
+        minSdkVersion 17
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        vectorDrawables.useSupportLibrary = true
+        manifestPlaceholders = [sharedUserId: "$applicationId"]
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+String support = "27.0.2"
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:appcompat-v7:${support}"
+    implementation "com.android.support.constraint:constraint-layout:1.0.2"
+    implementation "com.android.support:design:${support}"
+    implementation "com.android.support:support-v4:${support}"
+    implementation "com.android.support:support-vector-drawable:${support}"
+    implementation("com.afollestad.material-dialogs:core:0.9.4.2") {
+        exclude group: 'com.android.support'
+    }
+    implementation("com.afollestad.material-dialogs:commons:0.9.4.2") {
+        exclude group: 'com.android.support'
+    }
+
+    implementation("fr.coppernic.sdk.barcode:CpcBarcode:3.0.2@aar") {
+        transitive = true
+    }
+    implementation("fr.coppernic.sdk.core:CpcCore:1.0.1@aar") {
+        transitive = true
+    }
+    implementation("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.9.0@aar") {
+        transitive = true
+    }
+
+    testImplementation "junit:junit:4.12"
+
+    androidTestImplementation("com.android.support.test:runner:1.0.1") {
+        exclude group: 'com.android.support'
+    }
+    // Set this dependency to use JUnit 4 rules
+    androidTestImplementation("com.android.support.test:rules:1.0.1") {
+        exclude group: 'com.android.support'
+    }
+}
