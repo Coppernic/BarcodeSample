@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto">
+    >
     <ListPreference
         android:defaultValue="@string/pref_barcode_reader_default"
         android:dialogTitle="@string/pref_title_barcode_reader_type"
@@ -23,6 +23,6 @@
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="key_use_connector"
-        android:title="@string/barcode_use_connector"
-        android:summary="@string/barcode_use_connector_summary"/>
+        android:summary="@string/barcode_use_connector_summary"
+        android:title="@string/barcode_use_connector"/>
 </PreferenceScreen>

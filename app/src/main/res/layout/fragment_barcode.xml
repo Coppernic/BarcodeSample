@@ -57,8 +57,8 @@
         android:ems="10"
         android:fadeScrollbars="true"
         android:gravity="bottom"
-        android:scrollbars="vertical"
         android:maxLines="1000"
+        android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -118,16 +118,16 @@
         android:id="@+id/txtSetParam"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
         android:ems="10"
         android:inputType="numberDecimal"
         app:layout_constraintBottom_toBottomOf="@+id/btnSetParam"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toRightOf="@+id/spinnerSetParam"
-        android:layout_marginLeft="8dp"
         app:layout_constraintHorizontal_bias="1.0"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
+        app:layout_constraintLeft_toRightOf="@+id/spinnerSetParam"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btnSetParam"
         app:layout_constraintVertical_bias="0.0"/>
 
@@ -149,10 +149,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:text="@string/get_sym"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnSetParam"
-        android:layout_marginStart="8dp"/>
+        app:layout_constraintTop_toBottomOf="@+id/btnSetParam"/>
 
     <Spinner
         android:id="@+id/spinnerGetSym"
@@ -172,10 +172,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:text="@string/set_sym"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnGetSym"
-        android:layout_marginStart="8dp"/>
+        app:layout_constraintTop_toBottomOf="@+id/btnGetSym"/>
 
     <Spinner
         android:id="@+id/spinnerSetSym"
@@ -206,16 +206,16 @@
         android:id="@+id/checkGetSym"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/reload"
-        app:layout_constraintLeft_toRightOf="@+id/spinnerGetSym"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintTop_toTopOf="@+id/spinnerGetSym"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/spinnerGetSym"
         android:layout_marginBottom="0dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/reload"
+        app:layout_constraintBottom_toBottomOf="@+id/spinnerGetSym"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toRightOf="@+id/spinnerGetSym"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"/>
+        app:layout_constraintTop_toTopOf="@+id/spinnerGetSym"/>
 
     <Button
         android:id="@+id/btnGetAllSym"
@@ -232,14 +232,14 @@
         android:id="@+id/checkReloadAll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/reload"
-        app:layout_constraintLeft_toRightOf="@+id/btnGetAllSym"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintTop_toTopOf="@+id/btnGetAllSym"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/btnGetAllSym"
         android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent"/>
+        android:layout_marginTop="8dp"
+        android:text="@string/reload"
+        app:layout_constraintBottom_toBottomOf="@+id/btnGetAllSym"
+        app:layout_constraintLeft_toRightOf="@+id/btnGetAllSym"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnGetAllSym"/>
 
 </android.support.constraint.ConstraintLayout>
