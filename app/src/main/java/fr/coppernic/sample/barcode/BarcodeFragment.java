@@ -31,16 +31,19 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.coppernic.sample.barcode.preferences.SettingsActivity;
 import fr.coppernic.sdk.barcode.BarcodeFactory;
 import fr.coppernic.sdk.barcode.BarcodeReader;
+import fr.coppernic.sdk.barcode.BarcodeReader.BarcodeListener;
 import fr.coppernic.sdk.barcode.BarcodeReader.ScanResult;
 import fr.coppernic.sdk.barcode.BarcodeReaderType;
 import fr.coppernic.sdk.barcode.Symbol;
@@ -49,16 +52,12 @@ import fr.coppernic.sdk.barcode.SymbolSetting.SettingParam;
 import fr.coppernic.sdk.barcode.SymbolSettingDiff;
 import fr.coppernic.sdk.barcode.core.Parameter;
 import fr.coppernic.sdk.barcode.core.Parameter.ParamType;
-import fr.coppernic.sdk.powermgmt.PowerMgmt;
-import fr.coppernic.sdk.powermgmt.PowerMgmtFactory;
-import fr.coppernic.sdk.powermgmt.cizi.identifiers.InterfacesCizi;
-import fr.coppernic.sdk.powermgmt.cizi.identifiers.ManufacturersCizi;
-import fr.coppernic.sdk.powermgmt.cizi.identifiers.ModelsCizi;
-import fr.coppernic.sdk.powermgmt.cizi.identifiers.PeripheralTypesCizi;
-import fr.coppernic.sdk.powermgmt.cone.identifiers.InterfacesCone;
-import fr.coppernic.sdk.powermgmt.cone.identifiers.ManufacturersCone;
-import fr.coppernic.sdk.powermgmt.cone.identifiers.ModelsCone;
-import fr.coppernic.sdk.powermgmt.cone.identifiers.PeripheralTypesCone;
+import fr.coppernic.sdk.power.PowerManager;
+import fr.coppernic.sdk.power.api.PowerListener;
+import fr.coppernic.sdk.power.api.peripheral.Peripheral;
+import fr.coppernic.sdk.power.impl.cizi.CiziPeripheral;
+import fr.coppernic.sdk.power.impl.cone.ConePeripheral;
+import fr.coppernic.sdk.power.impl.idplatform.IdPlatformPeripheral;
 import fr.coppernic.sdk.utils.core.CpcBytes;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import fr.coppernic.sdk.utils.helpers.CpcOs;
@@ -67,152 +66,195 @@ import fr.coppernic.sdk.utils.io.InstanceListener;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeListener,
-    InstanceListener<BarcodeReader> {
+public class BarcodeFragment extends Fragment {
 
     private static final String TAG = "BarcodeFragment";
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 42;
     private final Handler handler = new Handler();
-    private Button btnOpen;
-    private Button btnFirm;
-    private Button btnScan;
-    private Button btnGetParam;
-    private Button btnSetParam;
-    private Button btnGetSym;
-    private EditText edtSetParam;
-    private Spinner spinnerSetParam;
-    private Spinner spinnerGetParam;
-    private Spinner spinnerGetSym;
-    private Button btnSetSym;
-    private Spinner spinnerSetSym;
-    private CheckBox checkGetParam;
-    private TextView txtLog;
+    @BindView(R.id.btnOpen)
+    Button btnOpen;
+    @BindView(R.id.btnFirm)
+    Button btnFirm;
+    @BindView(R.id.btnScan)
+    Button btnScan;
+    @BindView(R.id.btnGetParam)
+    Button btnGetParam;
+    @BindView(R.id.btnSetParam)
+    Button btnSetParam;
+    @BindView(R.id.btnGetSym)
+    Button btnGetSym;
+    @BindView(R.id.btnSetSym)
+    Button btnSetSym;
+    @BindView(R.id.txtSetParam)
+    EditText edtSetParam;
+    @BindView(R.id.spinnerSetParam)
+    Spinner spinnerSetParam;
+    @BindView(R.id.spinnerGetParam)
+    Spinner spinnerGetParam;
+    @BindView(R.id.spinnerGetSym)
+    Spinner spinnerGetSym;
+    @BindView(R.id.spinnerSetSym)
+    Spinner spinnerSetSym;
+    @BindView(R.id.checkGetParam)
+    CheckBox checkGetParam;
+    @BindView(R.id.txtLog)
+    TextView txtLog;
+    @BindView(R.id.checkGetSym)
+    CheckBox checkGetSym;
+    @BindView(R.id.checkReloadAll)
+    CheckBox checkGetAllSym;
+    @Nullable @BindView(R.id.switchSymEnable)
+    Switch dialogSwitch;
+    @Nullable @BindView(R.id.edtPrefix)
+    EditText dialogPrefix;
+    @Nullable @BindView(R.id.edtSuffix)
+    EditText dialogSuffix;
+    @Nullable @BindView(R.id.edtMin)
+    EditText dialogMin;
+    @Nullable @BindView(R.id.edtMax)
+    EditText dialogMax;
     private SharedPreferences sharedPreferences;
     private BarcodeReader reader;
-    private PowerMgmt power;
-    private CheckBox checkGetSym;
-    private CheckBox checkGetAllSym;
     private Dialog dialog;
-    private Switch dialogSwitch;
-    private EditText dialogPrefix;
-    private EditText dialogSuffix;
-    private EditText dialogMin;
-    private EditText dialogMax;
+    private Peripheral peripheral = null;
     private SymSettingState mState = SymSettingState.NONE;
+    private Context context;
+    private final BarcodeListener barcodeListener = new BarcodeListener() {
+
+        @Override
+        public void onFirmware(RESULT res, String s) {
+            Log.d(TAG, "onFirmware " + res);
+            log("Firmware : " + (s == null ? "null" : s));
+        }
+
+        @Override
+        public void onScan(RESULT res, ScanResult data) {
+            Log.d(TAG, "onScan " + res);
+            log(data == null ? "null" : data.toString() + ", " + res);
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    updateScanButton();
+                }
+            }, 10);
+        }
+
+        @Override
+        public void onOpened(RESULT res) {
+            Toast.makeText(getContext(), res.toString(), Toast.LENGTH_SHORT).show();
+            updateSpinnerParam();
+            updateOpenBtn();
+        }
+
+        @Override
+        public void onParameterAvailable(RESULT res, Parameter param) {
+            if (res != RESULT.OK) {
+                log("Get parameter : " + res);
+            } else {
+                log("Get parameter : " + param);
+            }
+        }
+
+        @Override
+        public void onSymbolSettingAvailable(RESULT res, SymbolSetting setting) {
+            if (mState == SymSettingState.SET) {
+                showSetSymDialog(setting);
+            } else {
+                log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
+            }
+        }
+
+        @Override
+        public void onAllSymbolSettingsAvailable(RESULT res, Collection<SymbolSetting> list) {
+            log("onAllSymbolSettingsAvailable : " + res.toString() + ", " + list.size());
+            for (SymbolSetting s : list) {
+                log(s.toString());
+            }
+        }
+
+        @Override
+        public void onSettingsSaved(RESULT res) {
+            Toast.makeText(getContext(), "Setting saved " + res, Toast.LENGTH_SHORT).show();
+        }
+
+    };
+    private final InstanceListener<BarcodeReader> instanceListener = new InstanceListener<BarcodeReader>() {
+
+        @Override
+        public void onCreated(BarcodeReader instance) {
+            Log.d(TAG, "onCreated " + instance);
+            reader = instance;
+            if (instance == null) {
+                enableView(false);
+                log("No reader available");
+            } else {
+                power(true);
+            }
+        }
+
+        @Override
+        public void onDisposed(BarcodeReader instance) {
+            Log.d(TAG, "onDisposed " + instance);
+            reader = null;
+            enableView(false);
+        }
+
+    };
+    private final PowerListener powerListener = new PowerListener() {
+        @Override
+        public void onPowerUp(RESULT result, Peripheral peripheral) {
+            if(RESULT.OK == result) {
+                enableView(true);
+            }
+        }
+
+        @Override
+        public void onPowerDown(RESULT result, Peripheral peripheral) {
+            if(RESULT.OK == result) {
+                enableView(false);
+            }
+        }
+    };
 
     public BarcodeFragment() {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_barcode, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        btnOpen = (Button) view.findViewById(R.id.btnOpen);
-        btnOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (reader != null && reader.isOpened()) {
-                    close();
-                } else {
-                    open();
-                }
-            }
-        });
-        btnOpen.setEnabled(false); //will be enabled with the camera permission
-        btnFirm = (Button) view.findViewById(R.id.btnFirm);
-        btnFirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getFirmware();
-            }
-        });
-        btnScan = (Button) view.findViewById(R.id.btnScan);
-        btnScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (reader.isScanning()) {
-                    abortScan();
-                } else {
-                    scan();
-                }
-            }
-        });
-        btnGetParam = (Button) view.findViewById(R.id.btnGetParam);
-        btnGetParam.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getParam();
-            }
-        });
-        btnSetParam = (Button) view.findViewById(R.id.btnSetParam);
-        btnSetParam.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setParam();
-            }
-        });
-        btnGetSym = (Button) view.findViewById(R.id.btnGetSym);
-        btnGetSym.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getSym();
-            }
-        });
-        Button btnGetAllSym = (Button) view.findViewById(R.id.btnGetAllSym);
-        btnGetAllSym.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getAllSym();
-            }
-        });
-        btnSetSym = (Button) view.findViewById(R.id.btnSetSym);
-        btnSetSym.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setSym();
-            }
-        });
-        Button btnClear = (Button) view.findViewById(R.id.btnClear);
-        btnClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clear();
-            }
-        });
-        edtSetParam = (EditText) view.findViewById(R.id.txtSetParam);
-        spinnerSetParam = (Spinner) view.findViewById(R.id.spinnerSetParam);
-        spinnerGetParam = (Spinner) view.findViewById(R.id.spinnerGetParam);
-        spinnerGetSym = (Spinner) view.findViewById(R.id.spinnerGetSym);
-        spinnerSetSym = (Spinner) view.findViewById(R.id.spinnerSetSym);
-        txtLog = (TextView) view.findViewById(R.id.txtLog);
-        txtLog.setMovementMethod(new ScrollingMovementMethod());
-        checkGetParam = (CheckBox) view.findViewById(R.id.checkGetParam);
-        checkGetSym = (CheckBox) view.findViewById(R.id.checkGetSym);
-        checkGetAllSym = (CheckBox) view.findViewById(R.id.checkReloadAll);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        ButterKnife.bind(this, view);
+        context = getContext();
 
-        //init
-        power = null;
+        btnOpen.setEnabled(false); //will be enabled with the camera permission
+        txtLog.setMovementMethod(new ScrollingMovementMethod());
 
         //permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int permissionCheck = ContextCompat.checkSelfPermission(getContext(),
+        requestCameraPermission();
+
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    private void requestCameraPermission(){
+        Context context = getContext();
+        if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int permissionCheck = ContextCompat.checkSelfPermission(context,
                                                                     Manifest.permission.CAMERA);
             /*
             if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-				btnOpen.setEnabled(true);
-			} else {
-				btnOpen.setEnabled(false);
-				*/
+                btnOpen.setEnabled(true);
+            } else {
+                btnOpen.setEnabled(false);
+                */
             requestPermissions(new String[]{Manifest.permission.CAMERA},
                                MY_PERMISSIONS_REQUEST_CAMERA);
             //}
         }
-
-        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
@@ -239,7 +281,8 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
     @Override
     public void onStart() {
         Log.d(TAG, "onStart");
-        BarcodeReader.ServiceManager.stopService(getContext());
+        PowerManager.get().registerListener(powerListener);
+        BarcodeReader.ServiceManager.stopService(context);
         updateOpenBtn();
         setUpReader();
         super.onStart();
@@ -250,7 +293,8 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
         Log.d(TAG, "onStop");
         close();
         power(false);
-        BarcodeReader.ServiceManager.startService(getContext());
+        BarcodeReader.ServiceManager.startService(context);
+        PowerManager.get().releaseAndUnregister();
         super.onStop();
     }
 
@@ -263,8 +307,83 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
         super.onDestroy();
     }
 
+    @OnClick(R.id.btnOpen)
+    void onOpen() {
+        if (reader != null && reader.isOpened()) {
+            close();
+        } else {
+            open();
+        }
+    }
+
+    @OnClick(R.id.btnScan)
+    void onScan() {
+        if (reader.isScanning()) {
+            abortScan();
+        } else {
+            scan();
+        }
+    }
+
+    @OnClick(R.id.btnFirm)
+    void getFirmware() {
+        RESULT res = reader.getFirmware();
+        showResError(res);
+    }
+
+    @OnClick(R.id.btnGetParam)
+    void getParam() {
+        ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
+        if (type != null) {
+            RESULT res = reader.getParameter(type, checkGetParam.isChecked());
+            showResError(res);
+        }
+    }
+
+    @OnClick(R.id.btnSetParam)
+    void setParam() {
+        ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
+        String value = edtSetParam.getText().toString();
+        if (type != null && !value.isEmpty()) {
+            try {
+                int val = Integer.parseInt(value);
+                Parameter parameter = new Parameter();
+                parameter.set(type, val);
+                RESULT res = reader.setParameter(parameter);
+                showResError(res);
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Wrong value format", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getContext(), "nothing to set", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @OnClick(R.id.btnGetSym)
+    void getSym() {
+        String symName = (String) spinnerGetSym.getSelectedItem();
+        getSym(symName, SymSettingState.GET);
+    }
+
+    @OnClick(R.id.btnGetAllSym)
+    void getAllSym() {
+        RESULT res = reader.getAllSymbolSettings(checkGetAllSym.isChecked());
+        showResError(res);
+    }
+
+    @OnClick(R.id.btnSetSym)
+    void setSym() {
+        String symName = (String) spinnerSetSym.getSelectedItem();
+        getSym(symName, SymSettingState.SET);
+    }
+
+    @OnClick(R.id.btnClear)
+    void clear() {
+        txtLog.setText("");
+    }
+
     private void setUpReader() {
-        BarcodeFactory factory = BarcodeFactory.get().setBarcodeListener(this);
+        BarcodeFactory factory = BarcodeFactory.get().setBarcodeListener(barcodeListener);
         if (sharedPreferences.contains(SettingsActivity.KEY_BAUDRATE)) {
             String bdt = sharedPreferences.getString(SettingsActivity.KEY_BAUDRATE, "9600");
             factory.setBaudrate(Integer.parseInt(bdt));
@@ -282,8 +401,8 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
             factory.setType(BarcodeReaderType.CONNECTOR);
         }
         // init power
-        power = getPowerMgmtFromReaderFactory(factory);
-        if (!factory.build(getContext(), this)) {
+        peripheral = getPeripheralFromReaderFactory(factory);
+        if (!factory.build(getContext(), instanceListener)) {
             Toast.makeText(getContext(), "No reader available", Toast.LENGTH_SHORT).show();
             enableView(false);
         }
@@ -305,10 +424,12 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
     }
 
     private void enableDialogView(boolean enable) {
-        dialogPrefix.setEnabled(enable);
-        dialogSuffix.setEnabled(enable);
-        dialogMin.setEnabled(enable);
-        dialogMax.setEnabled(enable);
+        if(dialogPrefix != null && dialogSuffix != null && dialogMin != null && dialogMax != null) {
+            dialogPrefix.setEnabled(enable);
+            dialogSuffix.setEnabled(enable);
+            dialogMin.setEnabled(enable);
+            dialogMax.setEnabled(enable);
+        }
     }
 
     private void open() {
@@ -328,52 +449,6 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
         if (res != RESULT.OK) {
             Toast.makeText(getContext(), res.toString(), Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void getFirmware() {
-        RESULT res = reader.getFirmware();
-        showResError(res);
-    }
-
-    private void getParam() {
-        ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
-        if (type != null) {
-            RESULT res = reader.getParameter(type, checkGetParam.isChecked());
-            showResError(res);
-        }
-    }
-
-    private void setParam() {
-        ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
-        String value = edtSetParam.getText().toString();
-        if (type != null && !value.isEmpty()) {
-            try {
-                int val = Integer.parseInt(value);
-                Parameter parameter = new Parameter();
-                parameter.set(type, val);
-                RESULT res = reader.setParameter(parameter);
-                showResError(res);
-            } catch (Exception e) {
-                Toast.makeText(getContext(), "Wrong value format", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(getContext(), "nothing to set", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void getSym() {
-        String symName = (String) spinnerGetSym.getSelectedItem();
-        getSym(symName, SymSettingState.GET);
-    }
-
-    private void getAllSym() {
-        RESULT res = reader.getAllSymbolSettings(checkGetAllSym.isChecked());
-        showResError(res);
-    }
-
-    private void setSym() {
-        String symName = (String) spinnerSetSym.getSelectedItem();
-        getSym(symName, SymSettingState.SET);
     }
 
     private void getSym(String symName, SymSettingState state) {
@@ -456,50 +531,28 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
         txtLog.append(s + "\n");
     }
 
-    private void clear() {
-        txtLog.setText("");
-    }
-
-    private PowerMgmt getPowerMgmtFromReaderFactory(BarcodeFactory bf) {
-        PowerMgmtFactory factory = PowerMgmtFactory.get()
-            .setContext(getContext())
-            .setTimeToSleepAfterPowerOn(500)
-            .setTimeToSleepAfterPowerOff(300);
-        if (CpcOs.isCone()) {
-            factory.setPeripheralTypes(PeripheralTypesCone.BarcodeReader);
-            factory.setInterfaces(InterfacesCone.ScannerPort);
-            switch (bf.getType()) {
-                case OPTICON_MDI3100:
-                    factory.setManufacturers(ManufacturersCone.Opticon);
-                    factory.setModels(ModelsCone.Mdi3100);
-                    break;
-                case HONEYWELL_N6603_DECODED:
-                    factory.setManufacturers(ManufacturersCone.Honeywell);
-                    factory.setModels(ModelsCone.n6603_decoded);
-                    break;
-                case HONEYWELL_N6603_UNDECODED:
-                case OPTICON_MDL1000:
-                case NONE:
-                    break;
+    private Peripheral getPeripheralFromReaderFactory(BarcodeFactory bf){
+        if(CpcOs.isConeK()){
+            if(bf.getType() == BarcodeReaderType.OPTICON_MDI3100) {
+                peripheral = ConePeripheral.BARCODE_OPTICON_MDI3100_GPIO;
+            } else if (bf.getType() == BarcodeReaderType.HONEYWELL_N6603_DECODED){
+                peripheral = ConePeripheral.BARCODE_HONEYWELL_N6603DECODED_GPIO;
             }
-        } else if (CpcOs.isCizi()) {
-            factory.setPeripheralTypes(PeripheralTypesCizi.BarcodeReader);
-            factory.setInterfaces(InterfacesCizi.ScannerPort);
-            factory.setManufacturers(ManufacturersCizi.Opticon);
-            factory.setModels(ModelsCizi.Mdi3100);
+        } else if (CpcOs.isIdPlatform()){
+            peripheral = IdPlatformPeripheral.BARCODE;
+        } else if (CpcOs.isCizi()){
+            peripheral = CiziPeripheral.BARCODE_OPTICON_MDI3100_GPIO;
         }
-        return factory.build();
+        return peripheral;
     }
 
     private void power(boolean b) {
-        try {
-            if (b) {
-                power.powerOn();
-            } else {
-                power.powerOff();
-            }
-        } catch (InvalidParameterException ignore) {
-            Log.w(TAG, ignore.toString());
+        Context context = getContext();
+        if(context != null && peripheral != null) {
+            PowerManager.get().power(context, peripheral, b);
+        } else {
+            //FIXME waiting for new version of CpcCore that provides default peripheral.
+            powerListener.onPowerUp(RESULT.OK, peripheral);
         }
     }
 
@@ -533,11 +586,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
     }
 
     private void onDialogViewCreated(View v, SymbolSetting setting) {
-        dialogSwitch = (Switch) v.findViewById(R.id.switchSymEnable);
-        dialogPrefix = (EditText) v.findViewById(R.id.edtPrefix);
-        dialogSuffix = (EditText) v.findViewById(R.id.edtSuffix);
-        dialogMin = (EditText) v.findViewById(R.id.edtMin);
-        dialogMax = (EditText) v.findViewById(R.id.edtMax);
+        ButterKnife.bind(this, v);
         dialogSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -575,86 +624,7 @@ public class BarcodeFragment extends Fragment implements BarcodeReader.BarcodeLi
         showResError(res);
     }
 
-    // ********** Barcode Listener ********** //
-
-    @Override
-    public void onFirmware(RESULT res, String s) {
-        Log.d(TAG, "onFirmware " + res);
-        log("Firmware : " + (s == null ? "null" : s));
-    }
-
-    @Override
-    public void onScan(RESULT res, ScanResult data) {
-        Log.d(TAG, "onScan " + res);
-        log(data == null ? "null" : data.toString() + ", " + res);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateScanButton();
-            }
-        }, 10);
-    }
-
-    @Override
-    public void onOpened(RESULT res) {
-        Toast.makeText(getContext(), res.toString(), Toast.LENGTH_SHORT).show();
-        updateSpinnerParam();
-        updateOpenBtn();
-    }
-
-    @Override
-    public void onParameterAvailable(RESULT res, Parameter param) {
-        if (res != RESULT.OK) {
-            log("Get parameter : " + res);
-        } else {
-            log("Get parameter : " + param);
-        }
-    }
-
-    @Override
-    public void onSymbolSettingAvailable(RESULT res, SymbolSetting setting) {
-        if (mState == SymSettingState.SET) {
-            showSetSymDialog(setting);
-        } else {
-            log("onSymbolSettingAvailable : " + res.toString() + ", " + setting.toString());
-        }
-    }
-
-    @Override
-    public void onAllSymbolSettingsAvailable(RESULT res, Collection<SymbolSetting> list) {
-        log("onAllSymbolSettingsAvailable : " + res.toString() + ", " + list.size());
-        for (SymbolSetting s : list) {
-            log(s.toString());
-        }
-    }
-
-    @Override
-    public void onSettingsSaved(RESULT res) {
-        Toast.makeText(getContext(), "Setting saved " + res, Toast.LENGTH_SHORT).show();
-    }
-
     // ********** Instance Listener ********** //
-
-    @Override
-    public void onCreated(BarcodeReader instance) {
-        Log.d(TAG, "onCreated " + instance);
-        reader = instance;
-        if (instance == null) {
-            enableView(false);
-            log("No reader available");
-        } else {
-            power(true);
-            enableView(true);
-        }
-    }
-
-    @Override
-    public void onDisposed(BarcodeReader instance) {
-        Log.d(TAG, "onDisposed " + instance);
-        reader = null;
-        enableView(false);
-    }
 
     private enum SymSettingState {
         NONE,

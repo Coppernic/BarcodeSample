@@ -18,3 +18,4 @@ include 'services:webservice'
 rootProject.name = 'BarcodeSample'
 
 include ':app'
+//include ':CpcCore'

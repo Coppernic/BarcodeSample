@@ -7,6 +7,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="com.id2mp.permissions.BARCODE"/>
 
     <application
         android:allowBackup="true"
@@ -19,11 +20,16 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden">
+        </activity>
+        <activity android:name="fr.coppernic.sdk.ui.splash.PermissionSplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <meta-data
+                android:name="activity"
+                android:value="fr.coppernic.sample.barcode.BarcodeActivity"/>
         </activity>
         <activity
             android:name=".preferences.SettingsActivity"
