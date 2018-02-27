@@ -234,7 +234,7 @@ public class BarcodeFragment extends Fragment {
         btnOpen.setEnabled(false); //will be enabled with the camera permission
         txtLog.setMovementMethod(new ScrollingMovementMethod());
 
-        //permission
+        //Needed only for devices that uses HONEYWELL_UNDECODED barcode reader
         requestCameraPermission();
 
         super.onViewCreated(view, savedInstanceState);
@@ -281,9 +281,13 @@ public class BarcodeFragment extends Fragment {
     @Override
     public void onStart() {
         Log.d(TAG, "onStart");
+        // First things to do is to register to power event.
         PowerManager.get().registerListener(powerListener);
+        // We are stopping the barcode service, otherwise we are not able to communicate with barcode reader because
+        // it is already in used by the service
         BarcodeReader.ServiceManager.stopService(context);
         updateOpenBtn();
+        // We are getting the reader here using the BarcodeFactory
         setUpReader();
         super.onStart();
     }
@@ -291,9 +295,13 @@ public class BarcodeFragment extends Fragment {
     @Override
     public void onStop() {
         Log.d(TAG, "onStop");
+        // First things to do is closing the reader.
         close();
+        // Powering the reader down to save power
         power(false);
+        // Starting barcode service so that service can respond to lateral buttons events
         BarcodeReader.ServiceManager.startService(context);
+        // No need to handle power anymore, we are releasing resources.
         PowerManager.get().releaseAndUnregister();
         super.onStop();
     }
@@ -383,25 +391,37 @@ public class BarcodeFragment extends Fragment {
     }
 
     private void setUpReader() {
+        //Reader is gotten from a factory
         BarcodeFactory factory = BarcodeFactory.get().setBarcodeListener(barcodeListener);
+        // Baudrate - optional because default value should be good
         if (sharedPreferences.contains(SettingsActivity.KEY_BAUDRATE)) {
             String bdt = sharedPreferences.getString(SettingsActivity.KEY_BAUDRATE, "9600");
             factory.setBaudrate(Integer.parseInt(bdt));
         }
+        // Port - optional because default value should be good
         if (sharedPreferences.contains(SettingsActivity.KEY_PORT)) {
             factory.setPort(sharedPreferences.getString(SettingsActivity.KEY_PORT, ""));
         }
+        // Type - optional because default value should be good.
         if (sharedPreferences.contains(SettingsActivity.KEY_TYPE)) {
             factory.setType(SettingsActivity.barcodeSettingToBarcodeType(
                 sharedPreferences.getString(SettingsActivity.KEY_TYPE,
                                             SettingsActivity.TYPE_NONE)));
         }
-        //Override previous setting if connector is checked
+        // Override previous setting if connector is checked. Connector uses barcode service to handle barcode reader.
+        // The advantage of that is that we do not need any particular permission to handle barcode reader. Service
+        // is holding permission for us.
         if (sharedPreferences.getBoolean(SettingsActivity.KEY_USE_CONNECTOR, false)) {
             factory.setType(BarcodeReaderType.CONNECTOR);
         }
-        // init power
+        // Init power - we are looking for the reader chosen by the factory to get the good peripheral to power up.
         peripheral = getPeripheralFromReaderFactory(factory);
+        /*
+        if(CpcOs.isIdPlatform()){
+            factory.setSerial(new DirectSerial());
+        }
+        */
+        // Launching the construction of barcode reader.
         if (!factory.build(getContext(), instanceListener)) {
             Toast.makeText(getContext(), "No reader available", Toast.LENGTH_SHORT).show();
             enableView(false);
