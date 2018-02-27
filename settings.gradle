@@ -19,3 +19,4 @@ rootProject.name = 'BarcodeSample'
 
 include ':app'
 //include ':CpcCore'
+//include ':CpcBarcode'

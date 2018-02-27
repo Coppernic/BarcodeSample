@@ -114,4 +114,6 @@ android-support-v4.jar
 *.iml
 .idea/
 
-CpcCore/
+Cpc*
+
+dependencies

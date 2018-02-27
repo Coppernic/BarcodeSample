@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "gradle.plugin.coppernic:android-config:0.1.0"
+        classpath "gradle.plugin.coppernic:android-config:0.1.1"
     }
 }
 
@@ -36,7 +36,7 @@ android {
     defaultConfig {
         applicationId "fr.coppernic.sample.barcode"
         minSdkVersion 17
-        targetSdkVersion 22
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
 
@@ -76,6 +76,7 @@ dependencies {
     implementation("fr.coppernic.sdk.barcode:CpcBarcode:3.2.0@aar")
     implementation("fr.coppernic.sdk.core:CpcCore:1.6.0-ENG1@aar") { transitive true}
     //implementation project(":CpcCore")
+    //implementation project(":CpcBarcode")
     implementation("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.14.0@aar")
 
     testImplementation "junit:junit:4.12"
