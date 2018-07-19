@@ -1,0 +1,55 @@
+image: coppernic/docker-android-sdk:184
+
+variables:
+  GIT_SSL_NO_VERIFY: "1"
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+before_script:
+  ##
+  ## Install ssh-agent if not already installed, it is required by Docker.
+  ## (change apt-get to yum if you use an RPM-based image)
+  ##
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  ##
+  ## Run ssh-agent (inside the build environment)
+  ##
+  - eval $(ssh-agent -s)
+  ##
+  ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+  ## We're using tr to fix line endings which makes ed25519 keys work
+  ## without extra base64 encoding.
+  ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
+  ##
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  ##
+  ## Create the SSH directory and give it the right permissions
+  ##
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo -e "Host gitlab.coppernic.local\nStrictHostKeyChecking no\nUserKnownHostsFile=/dev/null\n\nHost gitlab-01.coppernic.local\nStrictHostKeyChecking no\nUserKnownHostsFile=/dev/null" > ~/.ssh/config
+  #- git clone git@gitlab.coppernic.local:projectmngt/AndroidDeviceKeys.git ~/AndroidDeviceKeys
+  - git checkout ${CI_COMMIT_REF_NAME} && git pull
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - ./gradlew -g .gradle assemble
+  artifacts:
+    paths:
+    - app/build/outputs/
+
+unitTests:
+  stage: test
+  script:
+    - ./gradlew -g .gradle check
+  artifacts:
+    paths:
+    - app/build/reports/
