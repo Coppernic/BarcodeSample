@@ -4,12 +4,8 @@ This application shows how to use barcode API on Coppernic's devices.
 
 ## Build
 
-This application normally stands in a standard gradle workspace at Coppernic. Nevertheless, it is possible to build it as a standalone project. For that, you need to specify the `ìnit.gradle` script when running `gradle`.
-
-To build run this command :
-
 ```sh
-./gradlew -I init.gradle build
+./gradlew build
 ```
 
 ## Quick start
@@ -25,56 +21,43 @@ repositories {
     maven { url 'https://artifactory.coppernic.fr/artifactory/libs-release' }
 }
 
+String barcode = '3.4.2'
+
 dependencies {
-    compile("fr.coppernic.sdk.barcode:CpcBarcode:3.2.0@aar") {
-        transitive = true
-    }
-    compile("fr.coppernic.sdk.core:CpcCore:1.5.0@aar") {
-      transitive = true
-    }
-    compile("fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.13.0@aar") {
-      transitive = true
+    implementation "fr.coppernic.sdk.core:CpcCore:1.8.2"
+    implementation "fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.18.0"
+    implementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode"
+}
+
+// Special case for C-One²
+
+configurations.all {
+    if( name.startsWith("conen") ) {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("fr.coppernic.sdk.barcode:CpcBarcode:$barcode") with module('fr.coppernic.lib.barcode:CpcBarcode-conen:1.2.0')
+        }
     }
 }
+
+```
+
+If you are compiling your application only for C-One², just add this
+
+```groovy
+    implementation "fr.coppernic.lib.barcode:CpcBarcode-conen:1.2.0"
+```
+
+instead of this
+
+```groovy
+    implementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode"
 ```
 
 ### PowerMgmt
 
-> Description above is now deprecated. To use power management, please read [this](https://coppernic.github.io/coppernic/2017/10/23/Power-Management.html)
+To use power management, please read [this](https://coppernic.github.io/coppernic/2017/10/23/Power-Management.html)
 
-----
-
-We need to power the barcode reader before using it
-
- - Get an instance of PowerMgmt
-
-```java
-PowerMgmtFactory factory = PowerMgmtFactory.get()
-            .setContext(getContext())
-            // 500ms is needed by the reader to initialize
-            .setTimeToSleepAfterPowerOn(500);
-            // Waiting for the line to be down (Capacitive effect of some hardware)
-            .setTimeToSleepAfterPowerOff(200);
-
-// In this example we are telling Powermgmt to use Barcore reader Opticon Mdi3100 that is installed on C-One
-factory.setPeripheralTypes(PeripheralTypesCone.BarcodeReader);
-factory.setInterfaces(InterfacesCone.ScannerPort);
-factory.setManufacturers(ManufacturersCone.Opticon);
-factory.setModels(ModelsCone.Mdi3100);
-
-PowerMgmt power = factory.build();
-```
-
- - PowerMgmt instance can be used for powering up or down peripheral
-
-```java
-//  Avoid to do that on UI thread
-power.powerOn();
-power.powerOff();
-```
-
-CpcBarcode API
---------------
+## Barcode API
 
 ### Get a reader
 
@@ -261,3 +244,19 @@ Service is automatically configuring reader timeout to infinite.
 As soon as the barcode service starts (when you disconnect from connector)
 timeout settings will change. If you need to handle a specific timeout,
 then you need to configure it each time you get the connector instance.
+
+## Configure Barcode Service
+
+### Get a GlobalConfig instance
+
+```java
+GlobalConfig globalConfig = GlobalConfig.Builder.get(context);
+```
+
+Then you can call methods of GlobalConfig object to configure barcode behavior.
+
+### Warning
+
+- If you have CpcSystemServices with version > `3.3`, then you shall use CpcBarcode > `3.4.2`
+- If you have CpcSystemServices with version < `3.2`, then you shall use CpcBarcode < `3.3.0`
+
