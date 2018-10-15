@@ -130,7 +130,15 @@ public class BarcodeFragment extends Fragment {
         @Override
         public void onScan(RESULT res, ScanResult data) {
             Log.d(TAG, "onScan " + res);
-            log(data == null ? "null" : data.toString() + ", " + res);
+            String scanResult;
+            if (data == null) {
+                scanResult = "null";
+            } else if (sharedPreferences.getBoolean(SettingsActivity.KEY_SCAN_RESULT_DETAIL, false)) {
+                scanResult = fromScanResultToString(data);
+            } else {
+                scanResult = data.toString();
+            }
+            log(scanResult + ", " + res);
 
             handler.postDelayed(new Runnable() {
                 @Override
@@ -642,6 +650,15 @@ public class BarcodeFragment extends Fragment {
         }
         RESULT res = reader.setSymbolSetting(current.getSymbol(), diff);
         showResError(res);
+    }
+
+    private String fromScanResultToString(ScanResult data) {
+        return "ScanResult {\n" +
+               "ascii: |" + data.dataToString() + "|\n" +
+               "utf8: |" + CpcBytes.byteArrayToUtf8String(data.data) + "|\n" +
+               "hex: |" + CpcBytes.byteArrayToString(data.data) + "|\n" +
+               data.symbol + "\n" +
+               "}";
     }
 
     // ********** Instance Listener ********** //

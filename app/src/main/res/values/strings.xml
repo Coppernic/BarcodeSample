@@ -71,4 +71,6 @@
     <string name="barcode_use_connector">Use Connector</string>
     <string name="barcode_use_connector_summary">Use barcode reader through service</string>
     <string name="get_all_sym">Get All Sym Settings</string>
+    <string name="barcode_scan_result_detail">Result detail</string>
+    <string name="barcode_scan_result_detail_summary">Show detailed scan result</string>
 </resources>

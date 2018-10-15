@@ -25,4 +25,9 @@
         android:key="key_use_connector"
         android:summary="@string/barcode_use_connector_summary"
         android:title="@string/barcode_use_connector"/>
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="key_scan_result_detail"
+        android:summary="@string/barcode_scan_result_detail_summary"
+        android:title="@string/barcode_scan_result_detail"/>
 </PreferenceScreen>

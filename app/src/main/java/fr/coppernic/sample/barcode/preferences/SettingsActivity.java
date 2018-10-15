@@ -36,6 +36,7 @@ public class SettingsActivity extends AppCompatActivity {
     public final static String KEY_BAUDRATE = "key_barcode_bdt";
     public final static String KEY_PORT = "key_barcode_port";
     public final static String KEY_USE_CONNECTOR = "key_use_connector";
+    public final static String KEY_SCAN_RESULT_DETAIL = "key_scan_result_detail";
     public final static String TYPE_NONE = "-1";
     public final static String TYPE_OPTICON_MDI3100 = "0";
     public final static String TYPE_OPTICON_MDL1000 = "1";
