@@ -7,9 +7,9 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
-        classpath 'com.noveogroup.android:check:1.2.4'
-        classpath "gradle.plugin.coppernic:android-config:0.3.2"
+        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.noveogroup.android:check:1.2.5'
+        classpath "gradle.plugin.coppernic:android-config:0.3.9"
     }
 }
 

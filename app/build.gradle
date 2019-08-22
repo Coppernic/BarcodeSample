@@ -19,7 +19,7 @@ repositories {
     jcenter()
     mavenCentral()
     maven { url "https://artifactory.coppernic.fr/artifactory/libs-release" }
-    //mavenLocal()
+    mavenLocal()
 }
 
 android {
@@ -37,16 +37,22 @@ android {
         vectorDrawables.useSupportLibrary = true
         manifestPlaceholders = [sharedUserId: "$applicationId"]
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/lib_release.kotlin_module'
+    }
 }
 
 String support = "27.1.1"
-String barcode = '3.4.2'
+String barcode_legacy = '3.4.2'
+String barcode = '1.2.0'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -66,17 +72,17 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     // Ui
-    implementation 'fr.coppernic.lib:splash:0.0.1'
+    implementation 'fr.coppernic.lib:splash:0.1.0'
 
     // Coppernic
-    implementation "fr.coppernic.sdk.core:CpcCore:1.8.4"
-    implementation "fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.18.1"
-    implementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode"
+    implementation "fr.coppernic.sdk.core:CpcCore:1.8.14"
+    implementation "fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.18.4"
+    implementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode_legacy"
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest-all:1.3'
     testImplementation 'org.awaitility:awaitility:3.0.0'
-    testImplementation 'org.mockito:mockito-core:2.15.0'
+    testImplementation 'org.mockito:mockito-core:2.23.4'
     testImplementation 'org.robolectric:robolectric:3.8'
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
