@@ -324,7 +324,7 @@ public class BarcodeFragment extends Fragment {
     }
 
     @OnClick(R.id.btnOpen)
-    void onOpen() {
+    public void onOpen() {
         if (reader != null && reader.isOpened()) {
             close();
         } else {
@@ -333,7 +333,7 @@ public class BarcodeFragment extends Fragment {
     }
 
     @OnClick(R.id.btnScan)
-    void onScan() {
+    public void onScan() {
         if (reader.isScanning()) {
             abortScan();
         } else {
@@ -342,13 +342,13 @@ public class BarcodeFragment extends Fragment {
     }
 
     @OnClick(R.id.btnFirm)
-    void getFirmware() {
+    public void getFirmware() {
         RESULT res = reader.getFirmware();
         showResError(res);
     }
 
     @OnClick(R.id.btnGetParam)
-    void getParam() {
+    public void getParam() {
         ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
         if (type != null) {
             RESULT res = reader.getParameter(type, checkGetParam.isChecked());
@@ -357,7 +357,7 @@ public class BarcodeFragment extends Fragment {
     }
 
     @OnClick(R.id.btnSetParam)
-    void setParam() {
+    public void setParam() {
         ParamType type = (ParamType) spinnerSetParam.getSelectedItem();
         String value = edtSetParam.getText().toString();
         if (type != null && !value.isEmpty()) {
@@ -376,25 +376,25 @@ public class BarcodeFragment extends Fragment {
     }
 
     @OnClick(R.id.btnGetSym)
-    void getSym() {
+    public void getSym() {
         String symName = (String) spinnerGetSym.getSelectedItem();
         getSym(symName, SymSettingState.GET);
     }
 
     @OnClick(R.id.btnGetAllSym)
-    void getAllSym() {
+    public void getAllSym() {
         RESULT res = reader.getAllSymbolSettings(checkGetAllSym.isChecked());
         showResError(res);
     }
 
     @OnClick(R.id.btnSetSym)
-    void setSym() {
+    public void setSym() {
         String symName = (String) spinnerSetSym.getSelectedItem();
         getSym(symName, SymSettingState.SET);
     }
 
     @OnClick(R.id.btnClear)
-    void clear() {
+    public void clear() {
         txtLog.setText("");
     }
 

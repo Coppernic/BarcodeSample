@@ -6,9 +6,27 @@ apply plugin: 'com.android.application'
 apply plugin: 'fr.coppernic.extensions'
 
 copper {
+    projectName = "$rootProject.name"
+
     options {
         system true
         user true
+    }
+
+    publications {
+        genSourcesForVariant = { variant ->
+            true
+        }
+
+        artifactIdHook = { String base, variant ->
+            if (variant.flavorName == "standard") {
+                return base
+            } else {
+                return "$base-$variant.flavorName"
+            }
+        }
+
+        artiConfig = project.hasProperty('artiServer') ? project.artiServer : "arti01"
     }
 }
 
@@ -36,6 +54,11 @@ android {
 
         vectorDrawables.useSupportLibrary = true
         manifestPlaceholders = [sharedUserId: "$applicationId"]
+
+        // Even if we are not compiling native code, this is used as filter.
+        ndk {
+            abiFilters "armeabi-v7a"
+        }
     }
 
     buildTypes {
@@ -48,11 +71,29 @@ android {
     packagingOptions {
         exclude 'META-INF/lib_release.kotlin_module'
     }
+
+    productFlavors {
+        coneo {
+            dimension "product"
+            signingConfig android.signingConfigs.conen
+            manifestPlaceholders = [sharedUserId: "android.uid.system"]
+            applicationIdSuffix = ".coneo"
+        }
+    }
+
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+        //println "variantFilter $names"
+        if(project.hasProperty('filter') && !names.contains(project.filter)) {
+            //println "filtering ${variant.name}"
+            setIgnore(true)
+        }
+    }
 }
 
 String support = "27.1.1"
 String barcode_legacy = '3.4.2'
-String barcode = '1.2.0'
+String barcode = 'oreo'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -94,10 +135,16 @@ dependencies {
 }
 
 configurations.all {
+    //println "$name"
     if( name.startsWith("conen") ) {
         //println "$name -> $resolutionStrategy"
         resolutionStrategy.dependencySubstitution {
-            substitute module("fr.coppernic.sdk.barcode:CpcBarcode:$barcode") with module('fr.coppernic.lib.barcode:CpcBarcode-conen:1.2.0')
+            substitute module("fr.coppernic.sdk.barcode:CpcBarcode:$barcode_legacy") with module("fr.coppernic.lib.barcode:CpcBarcode-conen:$barcode")
+        }
+    } else if (name.startsWith("coneo")) {
+        //println "$name -> $resolutionStrategy"
+        resolutionStrategy.dependencySubstitution {
+            substitute module("fr.coppernic.sdk.barcode:CpcBarcode:$barcode_legacy") with module("fr.coppernic.lib.barcode:CpcBarcode-coneo:$barcode")
         }
     }
 }
